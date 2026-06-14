@@ -29,10 +29,10 @@ class TravelListFragment : Fragment(), TravelAdapter.Listener {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         dbHelper = TravelDBHelper(requireContext())
-        view.findViewById<TextView>(R.id.textTravelListTitle).text = "여행 기록 목록"
-        view.findViewById<TextView>(R.id.textTravelListDescription).text = "방문한 장소, 날짜, 사진과 메모를 한눈에 확인하세요."
-        view.findViewById<TextView>(R.id.textTravelListMessage).text = "저장된 여행 기록이 없습니다."
-        view.findViewById<TextView>(R.id.textTravelListGuide).text = "오른쪽 위 메뉴에서 새 기록을 추가하세요."
+        view.findViewById<TextView>(R.id.textTravelListTitle).setText(R.string.list_title)
+        view.findViewById<TextView>(R.id.textTravelListDescription).setText(R.string.list_description)
+        view.findViewById<TextView>(R.id.textTravelListMessage).setText(R.string.list_empty_title)
+        view.findViewById<TextView>(R.id.textTravelListGuide).setText(R.string.list_empty_message)
         view.findViewById<Button>(R.id.buttonAddFirst).setOnClickListener { TravelEditActivity.start(requireContext()) }
         emptyBox = view.findViewById(R.id.listEmptyBox)
         recyclerView = view.findViewById(R.id.recyclerTravelRecords)
@@ -57,12 +57,12 @@ class TravelListFragment : Fragment(), TravelAdapter.Listener {
 
     override fun onRecordLongClick(record: TravelRecord, anchor: View) {
         val popup = PopupMenu(requireContext(), anchor)
-        popup.menu.add("수정")
-        popup.menu.add("삭제")
+        popup.menu.add(MENU_EDIT)
+        popup.menu.add(MENU_DELETE)
         popup.setOnMenuItemClickListener { item ->
             when (item.title.toString()) {
-                "수정" -> TravelEditActivity.start(requireContext(), record.no)
-                "삭제" -> confirmDelete(record)
+                MENU_EDIT -> TravelEditActivity.start(requireContext(), record.no)
+                MENU_DELETE -> confirmDelete(record)
             }
             true
         }
@@ -82,15 +82,15 @@ class TravelListFragment : Fragment(), TravelAdapter.Listener {
 
     private fun confirmDelete(record: TravelRecord) {
         AlertDialog.Builder(requireContext())
-            .setTitle("기록 삭제")
-            .setMessage("${record.place} 기록을 삭제할까요?")
-            .setNegativeButton("취소", null)
-            .setPositiveButton("삭제") { _, _ ->
+            .setTitle(R.string.dialog_delete_title)
+            .setMessage(getString(R.string.dialog_delete_message, record.place))
+            .setNegativeButton(R.string.action_cancel, null)
+            .setPositiveButton(R.string.action_delete) { _, _ ->
                 if (dbHelper.deleteTravel(record.no) > 0) {
-                    Toast.makeText(requireContext(), "삭제했습니다.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), R.string.toast_deleted, Toast.LENGTH_SHORT).show()
                     loadRecords()
                 } else {
-                    Toast.makeText(requireContext(), "삭제하지 못했습니다.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), R.string.toast_delete_failed, Toast.LENGTH_SHORT).show()
                 }
             }
             .show()
@@ -103,6 +103,8 @@ class TravelListFragment : Fragment(), TravelAdapter.Listener {
     }
 
     companion object {
+        private const val MENU_EDIT = "수정"
+        private const val MENU_DELETE = "삭제"
         var sortMode = SortMode.DEFAULT
     }
 }

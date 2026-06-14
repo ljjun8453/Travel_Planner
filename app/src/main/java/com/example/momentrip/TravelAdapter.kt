@@ -43,7 +43,7 @@ class TravelAdapter(
         fun bind(record: TravelRecord) {
             textPlace.text = record.place
             textDate.text = record.visitDate
-            textMemo.text = record.memo ?: "메모 없음"
+            textMemo.text = record.memo ?: itemView.context.getString(R.string.item_no_memo)
             if (record.photoUri.isNullOrBlank()) {
                 imagePhoto.setImageResource(R.drawable.ic_launcher_foreground)
             } else {

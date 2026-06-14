@@ -1,8 +1,11 @@
 <resources>
-    <style name="Base.Theme.Momentrip" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="Base.Theme.Momentrip" parent="Theme.AppCompat.Light.DarkActionBar">
         <item name="android:fontFamily">sans</item>
         <item name="android:windowLightStatusBar">true</item>
         <item name="android:navigationBarColor">@color/momentrip_cloud</item>
         <item name="colorPrimary">@color/momentrip_teal</item>
+        <item name="colorPrimaryDark">@color/momentrip_navy</item>
+        <item name="colorAccent">@color/momentrip_orange</item>
+        <item name="windowActionModeOverlay">true</item>
     </style>
 </resources>

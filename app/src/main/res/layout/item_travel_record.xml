@@ -14,7 +14,7 @@
         android:layout_width="72dp"
         android:layout_height="72dp"
         android:background="@drawable/bg_empty_box"
-        android:contentDescription="여행 사진"
+        android:contentDescription="@string/content_travel_photo"
         android:scaleType="centerCrop" />
 
     <LinearLayout

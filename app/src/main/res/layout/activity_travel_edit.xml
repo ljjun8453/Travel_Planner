@@ -3,110 +3,103 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/bg_momentrip_main"
-    android:fillViewport="true">
+    android:fillViewport="true"
+    android:importantForAutofill="no">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="@drawable/bg_content_panel"
+        android:elevation="8dp"
         android:orientation="vertical"
         android:padding="20dp">
 
-        <LinearLayout
+        <ImageView
+            android:id="@+id/imagePhoto"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@drawable/bg_content_panel"
-            android:elevation="8dp"
-            android:orientation="vertical"
-            android:padding="20dp">
+            android:layout_height="210dp"
+            android:background="@drawable/bg_map_preview"
+            android:contentDescription="@string/content_selected_photo"
+            android:scaleType="centerCrop"
+            android:src="@drawable/ic_launcher_foreground" />
 
-            <ImageView
-                android:id="@+id/imagePhoto"
-                android:layout_width="match_parent"
-                android:layout_height="210dp"
-                android:background="@drawable/bg_map_preview"
-                android:contentDescription="선택한 여행 사진"
-                android:scaleType="centerCrop"
-                android:src="@drawable/ic_launcher_foreground" />
+        <Button
+            android:id="@+id/buttonPickPhoto"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="14dp"
+            android:background="@drawable/bg_tab_button"
+            android:stateListAnimator="@null"
+            android:text="@string/action_pick_photo"
+            android:textAllCaps="false"
+            android:textColor="@color/white"
+            android:textStyle="bold" />
 
-            <Button
-                android:id="@+id/buttonPickPhoto"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_marginTop="14dp"
-                android:background="@drawable/bg_tab_button"
-                android:stateListAnimator="@null"
-                android:text="갤러리에서 사진 선택"
-                android:textAllCaps="false"
-                android:textColor="@color/white"
-                android:textStyle="bold" />
+        <EditText
+            android:id="@+id/editPlace"
+            android:layout_width="match_parent"
+            android:layout_height="54dp"
+            android:layout_marginTop="18dp"
+            android:hint="@string/hint_place"
+            android:inputType="textCapWords"
+            android:paddingStart="14dp"
+            android:paddingEnd="14dp"
+            android:singleLine="true" />
 
-            <EditText
-                android:id="@+id/editPlace"
-                android:layout_width="match_parent"
-                android:layout_height="54dp"
-                android:layout_marginTop="18dp"
-                android:hint="여행지"
-                android:inputType="textCapWords"
-                android:paddingStart="14dp"
-                android:paddingEnd="14dp"
-                android:singleLine="true" />
+        <EditText
+            android:id="@+id/editVisitDate"
+            android:layout_width="match_parent"
+            android:layout_height="54dp"
+            android:layout_marginTop="10dp"
+            android:hint="@string/hint_visit_date"
+            android:inputType="date"
+            android:paddingStart="14dp"
+            android:paddingEnd="14dp"
+            android:singleLine="true" />
 
-            <EditText
-                android:id="@+id/editVisitDate"
-                android:layout_width="match_parent"
-                android:layout_height="54dp"
-                android:layout_marginTop="10dp"
-                android:hint="방문 날짜 예: 2026-06-01"
-                android:inputType="date"
-                android:paddingStart="14dp"
-                android:paddingEnd="14dp"
-                android:singleLine="true" />
+        <EditText
+            android:id="@+id/editMemo"
+            android:layout_width="match_parent"
+            android:layout_height="120dp"
+            android:layout_marginTop="10dp"
+            android:gravity="top"
+            android:hint="@string/hint_memo"
+            android:inputType="textMultiLine"
+            android:padding="14dp" />
 
-            <EditText
-                android:id="@+id/editMemo"
-                android:layout_width="match_parent"
-                android:layout_height="120dp"
-                android:layout_marginTop="10dp"
-                android:gravity="top"
-                android:hint="메모"
-                android:inputType="textMultiLine"
-                android:padding="14dp" />
+        <EditText
+            android:id="@+id/editLatitude"
+            android:layout_width="match_parent"
+            android:layout_height="54dp"
+            android:layout_marginTop="10dp"
+            android:hint="@string/hint_latitude"
+            android:inputType="numberDecimal|numberSigned"
+            android:paddingStart="14dp"
+            android:paddingEnd="14dp"
+            android:singleLine="true" />
 
-            <EditText
-                android:id="@+id/editLatitude"
-                android:layout_width="match_parent"
-                android:layout_height="54dp"
-                android:layout_marginTop="10dp"
-                android:hint="위도 선택 입력"
-                android:inputType="numberDecimal|numberSigned"
-                android:paddingStart="14dp"
-                android:paddingEnd="14dp"
-                android:singleLine="true" />
+        <EditText
+            android:id="@+id/editLongitude"
+            android:layout_width="match_parent"
+            android:layout_height="54dp"
+            android:layout_marginTop="10dp"
+            android:hint="@string/hint_longitude"
+            android:inputType="numberDecimal|numberSigned"
+            android:paddingStart="14dp"
+            android:paddingEnd="14dp"
+            android:singleLine="true" />
 
-            <EditText
-                android:id="@+id/editLongitude"
-                android:layout_width="match_parent"
-                android:layout_height="54dp"
-                android:layout_marginTop="10dp"
-                android:hint="경도 선택 입력"
-                android:inputType="numberDecimal|numberSigned"
-                android:paddingStart="14dp"
-                android:paddingEnd="14dp"
-                android:singleLine="true" />
-
-            <Button
-                android:id="@+id/buttonSave"
-                android:layout_width="match_parent"
-                android:layout_height="52dp"
-                android:layout_marginTop="18dp"
-                android:background="@drawable/bg_tab_button"
-                android:stateListAnimator="@null"
-                android:text="저장"
-                android:textAllCaps="false"
-                android:textColor="@color/white"
-                android:textStyle="bold" />
-
-        </LinearLayout>
+        <Button
+            android:id="@+id/buttonSave"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginTop="18dp"
+            android:background="@drawable/bg_tab_button"
+            android:stateListAnimator="@null"
+            android:text="@string/action_save"
+            android:textAllCaps="false"
+            android:textColor="@color/white"
+            android:textStyle="bold" />
 
     </LinearLayout>
 

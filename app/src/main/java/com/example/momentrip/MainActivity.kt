@@ -22,10 +22,10 @@ class MainActivity : AppCompatActivity() {
         dbHelper = TravelDBHelper(this)
         buttonTravelList = findViewById(R.id.buttonTravelList)
         buttonTravelMap = findViewById(R.id.buttonTravelMap)
-        findViewById<TextView>(R.id.textMainTitle).text = "여행을 기록하는 시간"
-        findViewById<TextView>(R.id.textMainSubTitle).text = "사진, 메모, 방문일을 한곳에 정리하고 오래 남길 순간을 빠르게 찾아보세요."
-        buttonTravelList.text = "기록 목록"
-        buttonTravelMap.text = "지도 보기"
+        findViewById<TextView>(R.id.textMainTitle).setText(R.string.main_title)
+        findViewById<TextView>(R.id.textMainSubTitle).setText(R.string.main_subtitle)
+        buttonTravelList.setText(R.string.tab_list)
+        buttonTravelMap.setText(R.string.tab_map)
 
         buttonTravelList.setOnClickListener {
             selectTab(true)
@@ -44,11 +44,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menu.add(0, MENU_ADD, 0, "새 기록")
-        menu.add(0, MENU_SORT_DATE, 1, "날짜순 정렬")
-        menu.add(0, MENU_SORT_PLACE, 2, "이름순 정렬")
-        menu.add(0, MENU_DELETE_ALL, 3, "전체 삭제")
-        menu.add(0, MENU_INFO, 4, "앱 정보")
+        menu.add(0, MENU_ADD, 0, getString(R.string.menu_add))
+        menu.add(0, MENU_SORT_DATE, 1, getString(R.string.menu_sort_date))
+        menu.add(0, MENU_SORT_PLACE, 2, getString(R.string.menu_sort_place))
+        menu.add(0, MENU_DELETE_ALL, 3, getString(R.string.menu_delete_all))
+        menu.add(0, MENU_INFO, 4, getString(R.string.menu_info))
         return true
     }
 
@@ -76,9 +76,9 @@ class MainActivity : AppCompatActivity() {
             }
             MENU_INFO -> {
                 AlertDialog.Builder(this)
-                    .setTitle("Momentrip")
-                    .setMessage("SQLiteOpenHelper 기반 여행 기록 앱입니다.")
-                    .setPositiveButton("확인", null)
+                    .setTitle(R.string.app_name)
+                    .setMessage(R.string.dialog_app_info_message)
+                    .setPositiveButton(R.string.action_ok, null)
                     .show()
                 true
             }
@@ -109,7 +109,7 @@ class MainActivity : AppCompatActivity() {
 
             transaction.commit()
         } catch (_: Exception) {
-            Toast.makeText(this, "화면 전환 중 오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, R.string.error_screen_change, Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -120,12 +120,12 @@ class MainActivity : AppCompatActivity() {
 
     private fun confirmDeleteAll() {
         AlertDialog.Builder(this)
-            .setTitle("전체 삭제")
-            .setMessage("저장된 모든 여행 기록을 삭제할까요?")
-            .setNegativeButton("취소", null)
-            .setPositiveButton("삭제") { _, _ ->
+            .setTitle(R.string.dialog_delete_all_title)
+            .setMessage(R.string.dialog_delete_all_message)
+            .setNegativeButton(R.string.action_cancel, null)
+            .setPositiveButton(R.string.action_delete) { _, _ ->
                 val count = dbHelper.deleteAllTravels()
-                Toast.makeText(this, "${count}개 기록을 삭제했습니다.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.toast_delete_count, count), Toast.LENGTH_SHORT).show()
                 selectTab(true)
                 showFragment(TravelListFragment(), true)
             }

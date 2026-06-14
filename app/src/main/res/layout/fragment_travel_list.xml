@@ -27,7 +27,7 @@
             android:paddingTop="6dp"
             android:paddingEnd="12dp"
             android:paddingBottom="6dp"
-            android:text="TRAVEL LOG"
+            android:text="@string/badge_travel_log"
             android:textColor="@color/momentrip_teal_dark"
             android:textSize="11sp"
             android:textStyle="bold" />
@@ -37,7 +37,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp"
-            android:text="여행 기록 목록"
+            android:text="@string/list_title"
             android:textColor="@color/momentrip_ink"
             android:textSize="26sp"
             android:textStyle="bold" />
@@ -48,7 +48,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:lineSpacingExtra="3dp"
-            android:text="방문한 장소, 날짜, 사진과 메모를 한눈에 확인하세요."
+            android:text="@string/list_description"
             android:textColor="@color/momentrip_muted"
             android:textSize="14sp" />
 
@@ -88,7 +88,7 @@
             android:layout_height="58dp"
             android:background="@drawable/bg_icon_circle_list"
             android:gravity="center"
-            android:text="+"
+            android:text="@string/action_plus"
             android:textColor="@color/momentrip_ink"
             android:textSize="28sp"
             android:textStyle="bold" />
@@ -99,7 +99,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="18dp"
             android:gravity="center"
-            android:text="저장된 여행 기록이 없습니다."
+            android:text="@string/list_empty_title"
             android:textColor="@color/momentrip_ink"
             android:textSize="18sp"
             android:textStyle="bold" />
@@ -111,7 +111,7 @@
             android:layout_marginTop="8dp"
             android:gravity="center"
             android:lineSpacingExtra="3dp"
-            android:text="오른쪽 위 메뉴에서 새 기록을 추가하세요."
+            android:text="@string/list_empty_message"
             android:textColor="@color/momentrip_muted"
             android:textSize="13sp" />
 
@@ -123,7 +123,7 @@
             android:background="@drawable/bg_tab_button"
             android:minWidth="128dp"
             android:stateListAnimator="@null"
-            android:text="새 기록"
+            android:text="@string/menu_add"
             android:textAllCaps="false"
             android:textColor="@color/white"
             android:textStyle="bold" />

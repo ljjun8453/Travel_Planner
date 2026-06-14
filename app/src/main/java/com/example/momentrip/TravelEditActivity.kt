@@ -52,10 +52,10 @@ class TravelEditActivity : AppCompatActivity() {
         findViewById<Button>(R.id.buttonSave).setOnClickListener { saveRecord() }
 
         if (recordNo > 0) {
-            title = "기록 수정"
+            title = getString(R.string.edit_title_update)
             loadRecord()
         } else {
-            title = "새 기록"
+            title = getString(R.string.edit_title_new)
         }
     }
 
@@ -74,7 +74,7 @@ class TravelEditActivity : AppCompatActivity() {
 
     private fun loadRecord() {
         val record = dbHelper.getTravel(recordNo) ?: run {
-            Toast.makeText(this, "기록을 찾을 수 없습니다.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, R.string.toast_record_not_found, Toast.LENGTH_SHORT).show()
             finish()
             return
         }
@@ -102,7 +102,7 @@ class TravelEditActivity : AppCompatActivity() {
         val place = editPlace.text.toString().trim()
         val visitDate = editVisitDate.text.toString().trim()
         if (place.isEmpty() || visitDate.isEmpty()) {
-            Toast.makeText(this, "여행지와 날짜를 입력하세요.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, R.string.toast_place_date_required, Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -117,10 +117,10 @@ class TravelEditActivity : AppCompatActivity() {
         )
         val result = if (recordNo > 0) dbHelper.updateTravel(record).toLong() else dbHelper.insertTravel(record)
         if (result > 0) {
-            Toast.makeText(this, "저장했습니다.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, R.string.toast_saved, Toast.LENGTH_SHORT).show()
             finish()
         } else {
-            Toast.makeText(this, "저장하지 못했습니다.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, R.string.toast_save_failed, Toast.LENGTH_SHORT).show()
         }
     }
 

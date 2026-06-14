@@ -20,8 +20,8 @@ class TravelMapFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         dbHelper = TravelDBHelper(requireContext())
-        view.findViewById<TextView>(R.id.textTravelMapTitle).text = "지도 보기"
-        view.findViewById<TextView>(R.id.textTravelMapDescription).text = "좌표가 저장된 여행 기록을 지도 패널에서 확인하세요."
+        view.findViewById<TextView>(R.id.textTravelMapTitle).setText(R.string.map_title)
+        view.findViewById<TextView>(R.id.textTravelMapDescription).setText(R.string.map_description)
     }
 
     override fun onResume() {
@@ -40,14 +40,14 @@ class TravelMapFragment : Fragment() {
         val guide = view?.findViewById<TextView>(R.id.textTravelMapGuide) ?: return
         val marker = view?.findViewById<TextView>(R.id.textMapMarker) ?: return
         if (records.isEmpty()) {
-            marker.text = "◎"
-            message.text = "위치가 저장된 여행 기록이 없습니다."
-            guide.text = "기록 추가 화면에서 위도와 경도를 입력하면 이곳에 표시됩니다."
+            marker.setText(R.string.map_marker_empty)
+            message.setText(R.string.map_empty_title)
+            guide.setText(R.string.map_empty_message)
         } else {
             val latest = records.last()
             marker.text = records.size.toString()
-            message.text = "${records.size}개 장소가 저장되어 있습니다."
-            guide.text = "${latest.place} · ${latest.latitude}, ${latest.longitude}"
+            message.text = getString(R.string.map_count_message, records.size)
+            guide.text = getString(R.string.map_latest_message, latest.place, latest.latitude, latest.longitude)
         }
     }
 }
