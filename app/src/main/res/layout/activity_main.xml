@@ -135,7 +135,13 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/buttonLayout"
-        tools:layout="@layout/fragment_travel_list" />
+        app:layout_constraintTop_toBottomOf="@id/buttonLayout">
+
+        <include
+            layout="@layout/fragment_travel_list"
+            android:visibility="gone"
+            tools:visibility="visible" />
+
+    </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -2,8 +2,8 @@
     <string name="app_name">Momentrip</string>
     <string name="app_name_lower">momentrip</string>
     <string name="badge_sqlite">SQLite</string>
-    <string name="badge_travel_log">TRAVEL LOG</string>
-    <string name="badge_location">LOCATION</string>
+    <string name="badge_travel_log">여행 기록</string>
+    <string name="badge_location">위치</string>
     <string name="main_title">여행을 기록하는 시간</string>
     <string name="main_subtitle">사진, 메모, 방문일을 한곳에 정리하고 오래 남길 순간을 빠르게 찾아보세요.</string>
     <string name="tab_list">기록 목록</string>

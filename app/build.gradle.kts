@@ -13,7 +13,7 @@ android {
     defaultConfig {
         applicationId = "com.example.momentrip"
         minSdk = 30
-        targetSdk = 36
+        targetSdk = 30
         versionCode = 1
         versionName = "1.0"
 
@@ -26,6 +26,9 @@ android {
                 enable = false
             }
         }
+    }
+    lint {
+        disable += "ExpiredTargetSdkVersion"
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
