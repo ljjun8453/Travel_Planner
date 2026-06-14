@@ -3,32 +3,111 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="24dp">
+    android:background="@android:color/transparent"
+    android:padding="18dp">
 
-    <TextView
-        android:id="@+id/textTravelMapTitle"
+    <LinearLayout
+        android:id="@+id/mapTopCard"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="지도 보기"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        app:layout_constraintBottom_toTopOf="@id/textTravelMapMessage"
+        android:background="@drawable/bg_fragment_card"
+        android:elevation="3dp"
+        android:orientation="vertical"
+        android:padding="20dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_chainStyle="packed" />
+        app:layout_constraintTop_toTopOf="parent">
 
-    <TextView
-        android:id="@+id/textTravelMapMessage"
+        <TextView
+            android:id="@+id/textTravelMapBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_map_badge"
+            android:paddingStart="12dp"
+            android:paddingTop="6dp"
+            android:paddingEnd="12dp"
+            android:paddingBottom="6dp"
+            android:text="LOCATION"
+            android:textColor="@color/momentrip_orange_dark"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/textTravelMapTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:text="지도 보기"
+            android:textColor="@color/momentrip_ink"
+            android:textSize="26sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/textTravelMapDescription"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:lineSpacingExtra="3dp"
+            android:text="좌표가 저장된 여행 기록을 지도 패널에서 확인하세요."
+            android:textColor="@color/momentrip_muted"
+            android:textSize="14sp" />
+
+    </LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/mapPreviewBox"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:gravity="center"
-        android:text="위치가 저장된 여행 기록이 없습니다."
-        android:textSize="16sp"
+        android:layout_height="0dp"
+        android:layout_marginTop="18dp"
+        android:background="@drawable/bg_map_preview"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHeight_min="260dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/textTravelMapTitle" />
+        app:layout_constraintTop_toBottomOf="@id/mapTopCard">
+
+        <TextView
+            android:id="@+id/textMapMarker"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_gravity="center"
+            android:background="@drawable/bg_icon_circle_map"
+            android:gravity="center"
+            android:text="◎"
+            android:textColor="@color/white"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:id="@+id/mapEmptyInfo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:background="@drawable/bg_map_info"
+            android:orientation="vertical"
+            android:padding="18dp">
+
+            <TextView
+                android:id="@+id/textTravelMapMessage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="위치가 저장된 여행 기록이 없습니다."
+                android:textColor="@color/momentrip_ink"
+                android:textSize="17sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/textTravelMapGuide"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:lineSpacingExtra="3dp"
+                android:text="기록 추가 화면에서 위도와 경도를 입력하면 이곳에 표시됩니다."
+                android:textColor="@color/momentrip_muted"
+                android:textSize="13sp" />
+
+        </LinearLayout>
+
+    </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

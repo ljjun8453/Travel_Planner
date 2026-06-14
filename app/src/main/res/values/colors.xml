@@ -2,4 +2,15 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="momentrip_ink">#11232A</color>
+    <color name="momentrip_navy">#173B4A</color>
+    <color name="momentrip_teal">#25A89A</color>
+    <color name="momentrip_teal_dark">#08746D</color>
+    <color name="momentrip_orange">#F6A84C</color>
+    <color name="momentrip_orange_dark">#A65D00</color>
+    <color name="momentrip_cloud">#F5FAF8</color>
+    <color name="momentrip_panel">#FAFFFC</color>
+    <color name="momentrip_line">#D9E8E3</color>
+    <color name="momentrip_muted">#62777D</color>
+    <color name="momentrip_header_soft">#D7F4EF</color>
 </resources>

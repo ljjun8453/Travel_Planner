@@ -3,32 +3,131 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="24dp">
+    android:background="@android:color/transparent"
+    android:padding="18dp">
 
-    <TextView
-        android:id="@+id/textTravelListTitle"
+    <LinearLayout
+        android:id="@+id/listTopCard"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="여행 기록 목록"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        app:layout_constraintBottom_toTopOf="@id/textTravelListMessage"
+        android:background="@drawable/bg_fragment_card"
+        android:elevation="3dp"
+        android:orientation="vertical"
+        android:padding="20dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_chainStyle="packed" />
+        app:layout_constraintTop_toTopOf="parent">
 
-    <TextView
-        android:id="@+id/textTravelListMessage"
+        <TextView
+            android:id="@+id/textTravelListBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_list_badge"
+            android:paddingStart="12dp"
+            android:paddingTop="6dp"
+            android:paddingEnd="12dp"
+            android:paddingBottom="6dp"
+            android:text="TRAVEL LOG"
+            android:textColor="@color/momentrip_teal_dark"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/textTravelListTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:text="여행 기록 목록"
+            android:textColor="@color/momentrip_ink"
+            android:textSize="26sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/textTravelListDescription"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:lineSpacingExtra="3dp"
+            android:text="방문한 장소, 날짜, 사진과 메모를 한눈에 확인하세요."
+            android:textColor="@color/momentrip_muted"
+            android:textSize="14sp" />
+
+    </LinearLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerTravelRecords"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:gravity="center"
-        android:text="저장된 여행 기록이 없습니다."
-        android:textSize="16sp"
+        android:layout_height="0dp"
+        android:layout_marginTop="18dp"
+        android:clipToPadding="false"
+        android:paddingBottom="10dp"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/textTravelListTitle" />
+        app:layout_constraintTop_toBottomOf="@id/listTopCard" />
+
+    <LinearLayout
+        android:id="@+id/listEmptyBox"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="18dp"
+        android:background="@drawable/bg_empty_box"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="24dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/listTopCard"
+        app:layout_constraintVertical_bias="0.08">
+
+        <TextView
+            android:id="@+id/textTravelListIcon"
+            android:layout_width="58dp"
+            android:layout_height="58dp"
+            android:background="@drawable/bg_icon_circle_list"
+            android:gravity="center"
+            android:text="+"
+            android:textColor="@color/momentrip_ink"
+            android:textSize="28sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/textTravelListMessage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:gravity="center"
+            android:text="저장된 여행 기록이 없습니다."
+            android:textColor="@color/momentrip_ink"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/textTravelListGuide"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:gravity="center"
+            android:lineSpacingExtra="3dp"
+            android:text="오른쪽 위 메뉴에서 새 기록을 추가하세요."
+            android:textColor="@color/momentrip_muted"
+            android:textSize="13sp" />
+
+        <Button
+            android:id="@+id/buttonAddFirst"
+            android:layout_width="wrap_content"
+            android:layout_height="46dp"
+            android:layout_marginTop="18dp"
+            android:background="@drawable/bg_tab_button"
+            android:minWidth="128dp"
+            android:stateListAnimator="@null"
+            android:text="새 기록"
+            android:textAllCaps="false"
+            android:textColor="@color/white"
+            android:textStyle="bold" />
+
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
