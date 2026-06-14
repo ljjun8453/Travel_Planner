@@ -1,14 +1,15 @@
 package com.example.momentrip
 
 import android.os.Bundle
+import android.view.ContextMenu
 import android.view.LayoutInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.widget.PopupMenu
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -18,6 +19,7 @@ class TravelListFragment : Fragment(), TravelAdapter.Listener {
     private lateinit var adapter: TravelAdapter
     private lateinit var recyclerView: RecyclerView
     private lateinit var emptyBox: View
+    private var contextRecord: TravelRecord? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -56,17 +58,31 @@ class TravelListFragment : Fragment(), TravelAdapter.Listener {
     }
 
     override fun onRecordLongClick(record: TravelRecord, anchor: View) {
-        val popup = PopupMenu(requireContext(), anchor)
-        popup.menu.add(0, MENU_EDIT, 0, getString(R.string.action_edit))
-        popup.menu.add(0, MENU_DELETE, 1, getString(R.string.action_delete))
-        popup.setOnMenuItemClickListener { item ->
-            when (item.itemId) {
-                MENU_EDIT -> AddEditActivity.start(requireContext(), record.no)
-                MENU_DELETE -> confirmDelete(record)
+        contextRecord = record
+        registerForContextMenu(anchor)
+        anchor.showContextMenu()
+    }
+
+    override fun onCreateContextMenu(menu: ContextMenu, v: View, menuInfo: ContextMenu.ContextMenuInfo?) {
+        super.onCreateContextMenu(menu, v, menuInfo)
+        menu.setHeaderTitle(contextRecord?.place ?: getString(R.string.list_title))
+        menu.add(0, MENU_EDIT, 0, getString(R.string.action_edit))
+        menu.add(0, MENU_DELETE, 1, getString(R.string.action_delete))
+    }
+
+    override fun onContextItemSelected(item: MenuItem): Boolean {
+        val record = contextRecord ?: return super.onContextItemSelected(item)
+        return when (item.itemId) {
+            MENU_EDIT -> {
+                AddEditActivity.start(requireContext(), record.no)
+                true
             }
-            true
+            MENU_DELETE -> {
+                confirmDelete(record)
+                true
+            }
+            else -> super.onContextItemSelected(item)
         }
-        popup.show()
     }
 
     private fun loadRecords() {
