@@ -16,6 +16,7 @@
     <string name="action_ok">확인</string>
     <string name="action_cancel">취소</string>
     <string name="action_delete">삭제</string>
+    <string name="action_edit">수정</string>
     <string name="action_plus">+</string>
     <string name="action_pick_gallery">갤러리</string>
     <string name="action_take_photo">카메라</string>
@@ -48,6 +49,9 @@
     <string name="map_latest_message">%1$s · %2$.6f, %3$.6f</string>
     <string name="edit_title_new">새 기록</string>
     <string name="edit_title_update">기록 수정</string>
+    <string name="detail_title">기록 상세</string>
+    <string name="detail_no_location">저장된 위치 정보가 없습니다.</string>
+    <string name="detail_location_format">위도 %1$.6f · 경도 %2$.6f</string>
     <string name="content_selected_photo">선택한 여행 사진</string>
     <string name="content_travel_photo">여행 사진</string>
     <string name="hint_place">여행지</string>

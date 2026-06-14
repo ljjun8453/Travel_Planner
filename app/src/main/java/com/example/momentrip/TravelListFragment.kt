@@ -52,15 +52,15 @@ class TravelListFragment : Fragment(), TravelAdapter.Listener {
     }
 
     override fun onRecordClick(record: TravelRecord) {
-        AddEditActivity.start(requireContext(), record.no)
+        DetailActivity.start(requireContext(), record.no)
     }
 
     override fun onRecordLongClick(record: TravelRecord, anchor: View) {
         val popup = PopupMenu(requireContext(), anchor)
-        popup.menu.add(MENU_EDIT)
-        popup.menu.add(MENU_DELETE)
+        popup.menu.add(0, MENU_EDIT, 0, getString(R.string.action_edit))
+        popup.menu.add(0, MENU_DELETE, 1, getString(R.string.action_delete))
         popup.setOnMenuItemClickListener { item ->
-            when (item.title.toString()) {
+            when (item.itemId) {
                 MENU_EDIT -> AddEditActivity.start(requireContext(), record.no)
                 MENU_DELETE -> confirmDelete(record)
             }
@@ -103,8 +103,8 @@ class TravelListFragment : Fragment(), TravelAdapter.Listener {
     }
 
     companion object {
-        private const val MENU_EDIT = "수정"
-        private const val MENU_DELETE = "삭제"
+        private const val MENU_EDIT = 1
+        private const val MENU_DELETE = 2
         var sortMode = SortMode.DEFAULT
     }
 }
