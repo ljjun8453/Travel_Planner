@@ -23,17 +23,38 @@
             android:scaleType="centerCrop"
             android:src="@drawable/ic_launcher_foreground" />
 
-        <Button
-            android:id="@+id/buttonPickPhoto"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="48dp"
+            android:layout_height="wrap_content"
             android:layout_marginTop="14dp"
-            android:background="@drawable/bg_tab_button"
-            android:stateListAnimator="@null"
-            android:text="@string/action_pick_photo"
-            android:textAllCaps="false"
-            android:textColor="@color/white"
-            android:textStyle="bold" />
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/buttonPickGallery"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_tab_button"
+                android:stateListAnimator="@null"
+                android:text="@string/action_pick_gallery"
+                android:textAllCaps="false"
+                android:textColor="@color/white"
+                android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/buttonTakePhoto"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_tab_button"
+                android:stateListAnimator="@null"
+                android:text="@string/action_take_photo"
+                android:textAllCaps="false"
+                android:textColor="@color/white"
+                android:textStyle="bold" />
+
+        </LinearLayout>
 
         <EditText
             android:id="@+id/editPlace"

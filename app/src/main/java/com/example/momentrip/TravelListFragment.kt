@@ -33,7 +33,7 @@ class TravelListFragment : Fragment(), TravelAdapter.Listener {
         view.findViewById<TextView>(R.id.textTravelListDescription).setText(R.string.list_description)
         view.findViewById<TextView>(R.id.textTravelListMessage).setText(R.string.list_empty_title)
         view.findViewById<TextView>(R.id.textTravelListGuide).setText(R.string.list_empty_message)
-        view.findViewById<Button>(R.id.buttonAddFirst).setOnClickListener { TravelEditActivity.start(requireContext()) }
+        view.findViewById<Button>(R.id.buttonAddFirst).setOnClickListener { AddEditActivity.start(requireContext()) }
         emptyBox = view.findViewById(R.id.listEmptyBox)
         recyclerView = view.findViewById(R.id.recyclerTravelRecords)
         adapter = TravelAdapter(mutableListOf(), this)
@@ -52,7 +52,7 @@ class TravelListFragment : Fragment(), TravelAdapter.Listener {
     }
 
     override fun onRecordClick(record: TravelRecord) {
-        TravelEditActivity.start(requireContext(), record.no)
+        AddEditActivity.start(requireContext(), record.no)
     }
 
     override fun onRecordLongClick(record: TravelRecord, anchor: View) {
@@ -61,7 +61,7 @@ class TravelListFragment : Fragment(), TravelAdapter.Listener {
         popup.menu.add(MENU_DELETE)
         popup.setOnMenuItemClickListener { item ->
             when (item.title.toString()) {
-                MENU_EDIT -> TravelEditActivity.start(requireContext(), record.no)
+                MENU_EDIT -> AddEditActivity.start(requireContext(), record.no)
                 MENU_DELETE -> confirmDelete(record)
             }
             true

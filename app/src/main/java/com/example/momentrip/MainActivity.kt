@@ -55,7 +55,7 @@ class MainActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             MENU_ADD -> {
-                TravelEditActivity.start(this)
+                AddEditActivity.start(this)
                 true
             }
             MENU_SORT_DATE -> {

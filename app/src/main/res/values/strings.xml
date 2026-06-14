@@ -17,7 +17,8 @@
     <string name="action_cancel">취소</string>
     <string name="action_delete">삭제</string>
     <string name="action_plus">+</string>
-    <string name="action_pick_photo">갤러리에서 사진 선택</string>
+    <string name="action_pick_gallery">갤러리</string>
+    <string name="action_take_photo">카메라</string>
     <string name="action_save">저장</string>
     <string name="dialog_app_info_message">SQLiteOpenHelper 기반 여행 기록 앱입니다.</string>
     <string name="dialog_delete_all_title">전체 삭제</string>
@@ -31,6 +32,7 @@
     <string name="toast_place_date_required">여행지와 날짜를 입력하세요.</string>
     <string name="toast_saved">저장했습니다.</string>
     <string name="toast_save_failed">저장하지 못했습니다.</string>
+    <string name="toast_camera_failed">카메라를 실행하지 못했습니다.</string>
     <string name="error_screen_change">화면 전환 중 오류가 발생했습니다.</string>
     <string name="list_title">여행 기록 목록</string>
     <string name="list_description">방문한 장소, 날짜, 사진과 메모를 한눈에 확인하세요.</string>

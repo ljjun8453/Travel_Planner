@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.provider.MediaStore
 import android.view.MenuItem
 import android.widget.Button
 import android.widget.EditText
@@ -12,8 +13,10 @@ import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.FileProvider
+import java.io.File
 
-class TravelEditActivity : AppCompatActivity() {
+class AddEditActivity : AppCompatActivity() {
     private lateinit var dbHelper: TravelDBHelper
     private lateinit var editPlace: EditText
     private lateinit var editVisitDate: EditText
@@ -23,12 +26,22 @@ class TravelEditActivity : AppCompatActivity() {
     private lateinit var imagePhoto: ImageView
     private var recordNo = 0
     private var selectedPhotoUri: String? = null
+    private var cameraPhotoUri: Uri? = null
 
-    private val photoPicker = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+    private val galleryLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             result.data?.data?.let { uri ->
                 selectedPhotoUri = uri.toString()
                 takePersistableUriPermissionSafe(uri)
+                imagePhoto.setImageURI(uri)
+            }
+        }
+    }
+
+    private val cameraLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            cameraPhotoUri?.let { uri ->
+                selectedPhotoUri = uri.toString()
                 imagePhoto.setImageURI(uri)
             }
         }
@@ -48,7 +61,8 @@ class TravelEditActivity : AppCompatActivity() {
         editLongitude = findViewById(R.id.editLongitude)
         imagePhoto = findViewById(R.id.imagePhoto)
 
-        findViewById<Button>(R.id.buttonPickPhoto).setOnClickListener { pickPhoto() }
+        findViewById<Button>(R.id.buttonPickGallery).setOnClickListener { openGallery() }
+        findViewById<Button>(R.id.buttonTakePhoto).setOnClickListener { openCamera() }
         findViewById<Button>(R.id.buttonSave).setOnClickListener { saveRecord() }
 
         if (recordNo > 0) {
@@ -87,7 +101,7 @@ class TravelEditActivity : AppCompatActivity() {
         selectedPhotoUri?.let { imagePhoto.setImageURI(Uri.parse(it)) }
     }
 
-    private fun pickPhoto() {
+    private fun openGallery() {
         val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
             addCategory(Intent.CATEGORY_OPENABLE)
             type = "image/*"
@@ -95,7 +109,38 @@ class TravelEditActivity : AppCompatActivity() {
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
         }
-        photoPicker.launch(intent)
+        galleryLauncher.launch(intent)
+    }
+
+    private fun openCamera() {
+        val uri = createCameraUri() ?: run {
+            Toast.makeText(this, R.string.toast_camera_failed, Toast.LENGTH_SHORT).show()
+            return
+        }
+        cameraPhotoUri = uri
+        val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE).apply {
+            putExtra(MediaStore.EXTRA_OUTPUT, uri)
+            addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+        if (intent.resolveActivity(packageManager) == null) {
+            Toast.makeText(this, R.string.toast_camera_failed, Toast.LENGTH_SHORT).show()
+            return
+        }
+        cameraLauncher.launch(intent)
+    }
+
+    private fun createCameraUri(): Uri? {
+        return try {
+            val imageDir = File(getExternalFilesDir(null), "travel_photos")
+            if (!imageDir.exists()) {
+                imageDir.mkdirs()
+            }
+            val imageFile = File(imageDir, "travel_${System.currentTimeMillis()}.jpg")
+            FileProvider.getUriForFile(this, "$packageName.fileprovider", imageFile)
+        } catch (_: Exception) {
+            null
+        }
     }
 
     private fun saveRecord() {
@@ -135,7 +180,7 @@ class TravelEditActivity : AppCompatActivity() {
         private const val EXTRA_RECORD_NO = "record_no"
 
         fun start(context: Context, recordNo: Int = 0) {
-            context.startActivity(Intent(context, TravelEditActivity::class.java).putExtra(EXTRA_RECORD_NO, recordNo))
+            context.startActivity(Intent(context, AddEditActivity::class.java).putExtra(EXTRA_RECORD_NO, recordNo))
         }
     }
 }
