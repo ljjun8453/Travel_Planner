@@ -1,6 +1,7 @@
 package com.example.momentrip
 
 import android.app.Activity
+import android.app.DatePickerDialog
 import android.content.Context
 import android.content.Intent
 import android.media.ExifInterface
@@ -19,6 +20,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import androidx.lifecycle.lifecycleScope
 import java.io.File
+import java.util.Calendar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -84,6 +86,7 @@ class AddEditActivity : AppCompatActivity() {
         findViewById<Button>(R.id.buttonTakePhoto).setOnClickListener { openCamera() }
         findViewById<Button>(R.id.buttonSave).setOnClickListener { saveRecord() }
         findViewById<Button>(R.id.buttonCancel).setOnClickListener { finish() }
+        editVisitDate.setOnClickListener { showDatePicker() }
 
         if (recordNo > 0) {
             title = getString(R.string.edit_title_update)
@@ -145,6 +148,23 @@ class AddEditActivity : AppCompatActivity() {
             galleryLauncher.launch(intent)
         } catch (_: Exception) {
             Toast.makeText(this, R.string.toast_gallery_failed, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun showDatePicker() {
+        try {
+            val calendar = Calendar.getInstance()
+            DatePickerDialog(
+                this,
+                { _, year, month, day ->
+                    editVisitDate.setText(String.format("%04d-%02d-%02d", year, month + 1, day))
+                },
+                calendar.get(Calendar.YEAR),
+                calendar.get(Calendar.MONTH),
+                calendar.get(Calendar.DAY_OF_MONTH)
+            ).show()
+        } catch (_: Exception) {
+            Toast.makeText(this, R.string.error_dialog_failed, Toast.LENGTH_SHORT).show()
         }
     }
 

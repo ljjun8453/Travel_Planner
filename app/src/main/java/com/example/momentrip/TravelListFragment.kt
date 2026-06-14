@@ -41,7 +41,7 @@ class TravelListFragment : Fragment(), TravelAdapter.Listener {
         view.findViewById<TextView>(R.id.textTravelListDescription).setText(R.string.list_description)
         view.findViewById<TextView>(R.id.textTravelListMessage).setText(R.string.list_empty_title)
         view.findViewById<TextView>(R.id.textTravelListGuide).setText(R.string.list_empty_message)
-        view.findViewById<Button>(R.id.buttonAddFirst).setOnClickListener { AddEditActivity.start(requireContext()) }
+        view.findViewById<Button>(R.id.buttonAddFirst).setOnClickListener { showCreateDialog() }
         emptyBox = view.findViewById(R.id.listEmptyBox)
         progressBar = view.findViewById(R.id.progressTravelList)
         recyclerView = view.findViewById(R.id.recyclerTravelRecords)
@@ -167,6 +167,23 @@ class TravelListFragment : Fragment(), TravelAdapter.Listener {
                 .setNegativeButton(R.string.action_cancel, null)
                 .setPositiveButton(R.string.action_delete) { _, _ ->
                     deleteRecord(record)
+                }
+                .show()
+        } catch (_: Exception) {
+            context?.let { Toast.makeText(it, R.string.error_dialog_failed, Toast.LENGTH_SHORT).show() }
+        }
+    }
+
+    private fun showCreateDialog() {
+        try {
+            AlertDialog.Builder(requireContext())
+                .setTitle(R.string.dialog_create_title)
+                .setItems(arrayOf(getString(R.string.dialog_create_record), getString(R.string.dialog_create_plan))) { _, which ->
+                    if (which == 0) {
+                        AddEditActivity.start(requireContext())
+                    } else {
+                        AddEditPlanActivity.start(requireContext())
+                    }
                 }
                 .show()
         } catch (_: Exception) {

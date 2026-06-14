@@ -14,20 +14,29 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.OnMapReadyCallback
+import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MarkerOptions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class DetailActivity : AppCompatActivity() {
+class DetailActivity : AppCompatActivity(), OnMapReadyCallback {
     private lateinit var dbHelper: TravelDBHelper
     private lateinit var imagePhoto: ImageView
     private lateinit var textPlace: TextView
     private lateinit var textVisitDate: TextView
     private lateinit var textMemo: TextView
     private lateinit var textLocation: TextView
+    private lateinit var mapContainer: View
+    private lateinit var textMapNotice: TextView
     private lateinit var progressBar: ProgressBar
     private var recordNo = 0
     private var currentRecord: TravelRecord? = null
+    private var googleMap: GoogleMap? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,7 +51,10 @@ class DetailActivity : AppCompatActivity() {
         textVisitDate = findViewById(R.id.detailTextVisitDate)
         textMemo = findViewById(R.id.detailTextMemo)
         textLocation = findViewById(R.id.detailTextLocation)
+        mapContainer = findViewById(R.id.detailMapContainer)
+        textMapNotice = findViewById(R.id.detailMapNotice)
         progressBar = findViewById(R.id.progressDetail)
+        setupDetailMap()
 
         findViewById<Button>(R.id.buttonEditRecord).setOnClickListener {
             try {
@@ -53,6 +65,17 @@ class DetailActivity : AppCompatActivity() {
         }
         findViewById<Button>(R.id.buttonDeleteRecord).setOnClickListener {
             currentRecord?.let { record -> confirmDelete(record) }
+        }
+    }
+
+    override fun onMapReady(map: GoogleMap) {
+        try {
+            googleMap = map
+            currentRecord?.let { showDetailMap(it) }
+        } catch (_: Exception) {
+            textMapNotice.visibility = View.VISIBLE
+            textMapNotice.setText(R.string.toast_map_failed)
+            Toast.makeText(this, R.string.toast_map_failed, Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -72,6 +95,21 @@ class DetailActivity : AppCompatActivity() {
     override fun onDestroy() {
         dbHelper.close()
         super.onDestroy()
+    }
+
+    private fun setupDetailMap() {
+        try {
+            val mapFragment = SupportMapFragment.newInstance()
+            supportFragmentManager.beginTransaction()
+                .replace(R.id.detailMapContainer, mapFragment)
+                .commitNow()
+            mapFragment.getMapAsync(this)
+        } catch (_: Exception) {
+            mapContainer.visibility = View.GONE
+            textMapNotice.visibility = View.VISIBLE
+            textMapNotice.setText(R.string.toast_map_failed)
+            Toast.makeText(this, R.string.toast_map_failed, Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun loadRecord() {
@@ -106,6 +144,7 @@ class DetailActivity : AppCompatActivity() {
             getString(R.string.detail_no_location)
         }
         showPhoto(record.photoUri)
+        showDetailMap(record)
     }
 
     private fun showPhoto(photoUri: String?) {
@@ -118,6 +157,38 @@ class DetailActivity : AppCompatActivity() {
         } catch (_: Exception) {
             imagePhoto.setImageResource(R.drawable.ic_launcher_foreground)
             Toast.makeText(this, R.string.toast_image_failed, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun showDetailMap(record: TravelRecord) {
+        try {
+            val latitude = record.latitude
+            val longitude = record.longitude
+            if (latitude == null || longitude == null) {
+                googleMap?.clear()
+                mapContainer.visibility = View.GONE
+                textMapNotice.visibility = View.VISIBLE
+                textMapNotice.setText(R.string.detail_no_location)
+                return
+            }
+
+            mapContainer.visibility = View.VISIBLE
+            textMapNotice.visibility = View.GONE
+            val map = googleMap ?: return
+            val position = LatLng(latitude, longitude)
+            map.clear()
+            map.addMarker(
+                MarkerOptions()
+                    .position(position)
+                    .title(record.place)
+                    .snippet(record.visitDate)
+            )
+            map.moveCamera(CameraUpdateFactory.newLatLngZoom(position, DETAIL_ZOOM))
+        } catch (_: Exception) {
+            mapContainer.visibility = View.GONE
+            textMapNotice.visibility = View.VISIBLE
+            textMapNotice.setText(R.string.toast_map_failed)
+            Toast.makeText(this, R.string.toast_map_failed, Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -159,6 +230,7 @@ class DetailActivity : AppCompatActivity() {
 
     companion object {
         private const val EXTRA_RECORD_NO = "record_no"
+        private const val DETAIL_ZOOM = 14f
 
         fun start(context: Context, recordNo: Int) {
             context.startActivity(Intent(context, DetailActivity::class.java).putExtra(EXTRA_RECORD_NO, recordNo))

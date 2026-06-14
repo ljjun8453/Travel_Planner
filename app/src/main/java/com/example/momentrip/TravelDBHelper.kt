@@ -11,6 +11,7 @@ class TravelDBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
     override fun onCreate(db: SQLiteDatabase) {
         try {
             db.execSQL(CREATE_TABLE_TRAVEL)
+            db.execSQL(CREATE_TABLE_PLAN)
         } catch (e: Exception) {
             Log.e(TAG, "onCreate error", e)
         }
@@ -18,8 +19,9 @@ class TravelDBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
         try {
-            db.execSQL("DROP TABLE IF EXISTS $TABLE_TRAVEL")
-            onCreate(db)
+            if (oldVersion < 2) {
+                db.execSQL(CREATE_TABLE_PLAN)
+            }
         } catch (e: Exception) {
             Log.e(TAG, "onUpgrade error", e)
         }
@@ -128,6 +130,39 @@ class TravelDBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         }
     }
 
+    fun insertPlan(plan: TravelPlan): Long {
+        return try {
+            writableDatabase.insert(TABLE_PLAN, null, createPlanContentValues(plan))
+        } catch (e: Exception) {
+            Log.e(TAG, "insertPlan error", e)
+            -1L
+        }
+    }
+
+    fun getAllPlans(): ArrayList<TravelPlan> {
+        return try {
+            val plans = arrayListOf<TravelPlan>()
+            readableDatabase.rawQuery("SELECT * FROM $TABLE_PLAN ORDER BY $SQL_COLUMN_PLAN_DATE ASC", null).use { cursor ->
+                while (cursor.moveToNext()) {
+                    plans.add(cursorToTravelPlan(cursor))
+                }
+            }
+            plans
+        } catch (e: Exception) {
+            Log.e(TAG, "getAllPlans error", e)
+            arrayListOf()
+        }
+    }
+
+    fun deletePlan(no: Int): Int {
+        return try {
+            writableDatabase.delete(TABLE_PLAN, "$SQL_COLUMN_NO = ?", arrayOf(no.toString()))
+        } catch (e: Exception) {
+            Log.e(TAG, "deletePlan error", e)
+            0
+        }
+    }
+
     private fun getTravelsByQuery(sql: String, selectionArgs: Array<String>?): ArrayList<TravelRecord> {
         val records = arrayListOf<TravelRecord>()
 
@@ -151,6 +186,14 @@ class TravelDBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         return values
     }
 
+    private fun createPlanContentValues(plan: TravelPlan): ContentValues {
+        val values = ContentValues()
+        values.put(COLUMN_PLACE, plan.place)
+        values.put(COLUMN_PLAN_DATE, plan.planDate)
+        putNullableString(values, COLUMN_MEMO, plan.memo)
+        return values
+    }
+
     private fun cursorToTravelRecord(cursor: Cursor): TravelRecord {
         val memoIndex = cursor.getColumnIndexOrThrow(COLUMN_MEMO)
         val photoUriIndex = cursor.getColumnIndexOrThrow(COLUMN_PHOTO_URI)
@@ -165,6 +208,17 @@ class TravelDBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
             photoUri = if (cursor.isNull(photoUriIndex)) null else cursor.getString(photoUriIndex),
             latitude = if (cursor.isNull(latitudeIndex)) null else cursor.getDouble(latitudeIndex),
             longitude = if (cursor.isNull(longitudeIndex)) null else cursor.getDouble(longitudeIndex)
+        )
+    }
+
+    private fun cursorToTravelPlan(cursor: Cursor): TravelPlan {
+        val memoIndex = cursor.getColumnIndexOrThrow(COLUMN_MEMO)
+
+        return TravelPlan(
+            no = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_NO)),
+            place = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_PLACE)),
+            planDate = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_PLAN_DATE)),
+            memo = if (cursor.isNull(memoIndex)) null else cursor.getString(memoIndex)
         )
     }
 
@@ -186,11 +240,13 @@ class TravelDBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
 
     companion object {
         private const val DATABASE_NAME = "momentrip.db"
-        private const val DATABASE_VERSION = 1
+        private const val DATABASE_VERSION = 2
         private const val TABLE_TRAVEL = "travel_record"
+        private const val TABLE_PLAN = "travel_plan"
         private const val COLUMN_NO = "no"
         private const val COLUMN_PLACE = "place"
         private const val COLUMN_VISIT_DATE = "visit_date"
+        private const val COLUMN_PLAN_DATE = "plan_date"
         private const val COLUMN_MEMO = "memo"
         private const val COLUMN_PHOTO_URI = "photo_uri"
         private const val COLUMN_LATITUDE = "latitude"
@@ -198,6 +254,7 @@ class TravelDBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         private const val SQL_COLUMN_NO = "\"$COLUMN_NO\""
         private const val SQL_COLUMN_PLACE = "\"$COLUMN_PLACE\""
         private const val SQL_COLUMN_VISIT_DATE = "\"$COLUMN_VISIT_DATE\""
+        private const val SQL_COLUMN_PLAN_DATE = "\"$COLUMN_PLAN_DATE\""
         private const val SQL_COLUMN_MEMO = "\"$COLUMN_MEMO\""
         private const val SQL_COLUMN_PHOTO_URI = "\"$COLUMN_PHOTO_URI\""
         private const val SQL_COLUMN_LATITUDE = "\"$COLUMN_LATITUDE\""
@@ -212,6 +269,13 @@ class TravelDBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                 "$SQL_COLUMN_PHOTO_URI TEXT, " +
                 "$SQL_COLUMN_LATITUDE REAL, " +
                 "$SQL_COLUMN_LONGITUDE REAL" +
+                ")"
+        private const val CREATE_TABLE_PLAN =
+            "CREATE TABLE IF NOT EXISTS $TABLE_PLAN (" +
+                "$SQL_COLUMN_NO INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "$SQL_COLUMN_PLACE TEXT NOT NULL, " +
+                "$SQL_COLUMN_PLAN_DATE TEXT NOT NULL, " +
+                "$SQL_COLUMN_MEMO TEXT" +
                 ")"
     }
 }

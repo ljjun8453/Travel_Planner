@@ -19,6 +19,10 @@ import kotlinx.coroutines.withContext
 class MainActivity : AppCompatActivity() {
     lateinit var buttonTravelList: Button
     lateinit var buttonTravelMap: Button
+    private lateinit var buttonLayout: View
+    private lateinit var buttonNavRecords: Button
+    private lateinit var buttonNavHome: Button
+    private lateinit var buttonNavPlans: Button
     private lateinit var dbHelper: TravelDBHelper
     private lateinit var progressBar: ProgressBar
 
@@ -29,6 +33,10 @@ class MainActivity : AppCompatActivity() {
         dbHelper = TravelDBHelper(this)
         buttonTravelList = findViewById(R.id.buttonTravelList)
         buttonTravelMap = findViewById(R.id.buttonTravelMap)
+        buttonLayout = findViewById(R.id.buttonLayout)
+        buttonNavRecords = findViewById(R.id.buttonNavRecords)
+        buttonNavHome = findViewById(R.id.buttonNavHome)
+        buttonNavPlans = findViewById(R.id.buttonNavPlans)
         progressBar = findViewById(R.id.progressMain)
         findViewById<TextView>(R.id.textMainTitle).setText(R.string.main_title)
         findViewById<TextView>(R.id.textMainSubTitle).setText(R.string.main_subtitle)
@@ -36,18 +44,27 @@ class MainActivity : AppCompatActivity() {
         buttonTravelMap.setText(R.string.tab_map)
 
         buttonTravelList.setOnClickListener {
-            selectTab(true)
-            showFragment(TravelListFragment(), true)
+            showRecordList(true)
         }
 
         buttonTravelMap.setOnClickListener {
-            selectTab(false)
-            showFragment(TravelMapFragment(), true)
+            showRecordMap(true)
+        }
+
+        buttonNavRecords.setOnClickListener {
+            showRecordList(true)
+        }
+
+        buttonNavHome.setOnClickListener {
+            showHome(true)
+        }
+
+        buttonNavPlans.setOnClickListener {
+            showPlans(true)
         }
 
         if (savedInstanceState == null) {
-            selectTab(true)
-            showFragment(TravelListFragment(), false)
+            showHome(false)
         }
     }
 
@@ -59,23 +76,17 @@ class MainActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.menuAdd -> {
-                try {
-                    AddEditActivity.start(this)
-                } catch (_: Exception) {
-                    Toast.makeText(this, R.string.error_screen_change, Toast.LENGTH_SHORT).show()
-                }
+                showCreateDialog()
                 true
             }
             R.id.menuSortDate -> {
                 TravelListFragment.sortMode = TravelListFragment.SortMode.DATE
-                selectTab(true)
-                showFragment(TravelListFragment(), true)
+                showRecordList(true)
                 true
             }
             R.id.menuSortPlace -> {
                 TravelListFragment.sortMode = TravelListFragment.SortMode.PLACE
-                selectTab(true)
-                showFragment(TravelListFragment(), true)
+                showRecordList(true)
                 true
             }
             R.id.menuDeleteAll -> {
@@ -85,7 +96,7 @@ class MainActivity : AppCompatActivity() {
             R.id.menuInfo -> {
                 try {
                     AlertDialog.Builder(this)
-                        .setTitle(R.string.app_name)
+                        .setTitle(R.string.dialog_app_info_title)
                         .setMessage(R.string.dialog_app_info_message)
                         .setPositiveButton(R.string.action_ok, null)
                         .show()
@@ -130,6 +141,55 @@ class MainActivity : AppCompatActivity() {
         buttonTravelMap.isSelected = !isListSelected
     }
 
+    private fun showHome(addToBackStack: Boolean) {
+        buttonLayout.visibility = View.GONE
+        selectBottomNav(NavMode.HOME)
+        showFragment(HomeFragment(), addToBackStack)
+    }
+
+    private fun showRecordList(addToBackStack: Boolean) {
+        buttonLayout.visibility = View.VISIBLE
+        selectBottomNav(NavMode.RECORDS)
+        selectTab(true)
+        showFragment(TravelListFragment(), addToBackStack)
+    }
+
+    private fun showRecordMap(addToBackStack: Boolean) {
+        buttonLayout.visibility = View.VISIBLE
+        selectBottomNav(NavMode.RECORDS)
+        selectTab(false)
+        showFragment(TravelMapFragment(), addToBackStack)
+    }
+
+    private fun showPlans(addToBackStack: Boolean) {
+        buttonLayout.visibility = View.GONE
+        selectBottomNav(NavMode.PLANS)
+        showFragment(TravelPlanFragment(), addToBackStack)
+    }
+
+    private fun selectBottomNav(mode: NavMode) {
+        buttonNavRecords.setTextColor(getColor(if (mode == NavMode.RECORDS) R.color.momentrip_teal_dark else R.color.momentrip_muted))
+        buttonNavHome.setTextColor(getColor(if (mode == NavMode.HOME) R.color.momentrip_ink else R.color.momentrip_navy))
+        buttonNavPlans.setTextColor(getColor(if (mode == NavMode.PLANS) R.color.momentrip_teal_dark else R.color.momentrip_muted))
+    }
+
+    private fun showCreateDialog() {
+        try {
+            AlertDialog.Builder(this)
+                .setTitle(R.string.dialog_create_title)
+                .setItems(arrayOf(getString(R.string.dialog_create_record), getString(R.string.dialog_create_plan))) { _, which ->
+                    if (which == 0) {
+                        AddEditActivity.start(this)
+                    } else {
+                        AddEditPlanActivity.start(this)
+                    }
+                }
+                .show()
+        } catch (_: Exception) {
+            Toast.makeText(this, R.string.error_dialog_failed, Toast.LENGTH_SHORT).show()
+        }
+    }
+
     private fun confirmDeleteAll() {
         try {
             AlertDialog.Builder(this)
@@ -162,8 +222,13 @@ class MainActivity : AppCompatActivity() {
                 return@launch
             }
             Toast.makeText(this@MainActivity, getString(R.string.toast_delete_count, count), Toast.LENGTH_SHORT).show()
-            selectTab(true)
-            showFragment(TravelListFragment(), true)
+            showRecordList(true)
         }
+    }
+
+    enum class NavMode {
+        RECORDS,
+        HOME,
+        PLANS
     }
 }
