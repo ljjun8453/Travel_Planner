@@ -67,6 +67,17 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/listTopCard" />
 
+    <ProgressBar
+        android:id="@+id/progressTravelList"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:indeterminate="true"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@id/recyclerTravelRecords"
+        app:layout_constraintEnd_toEndOf="@id/recyclerTravelRecords"
+        app:layout_constraintStart_toStartOf="@id/recyclerTravelRecords"
+        app:layout_constraintTop_toTopOf="@id/recyclerTravelRecords" />
+
     <LinearLayout
         android:id="@+id/listEmptyBox"
         android:layout_width="0dp"

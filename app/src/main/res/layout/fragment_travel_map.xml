@@ -55,59 +55,58 @@
     </LinearLayout>
 
     <FrameLayout
-        android:id="@+id/mapPreviewBox"
+        android:id="@+id/googleMapContainer"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginTop="18dp"
         android:background="@drawable/bg_map_preview"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/mapInfoPanel"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHeight_min="260dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/mapTopCard">
+        app:layout_constraintTop_toBottomOf="@id/mapTopCard" />
+
+    <ProgressBar
+        android:id="@+id/progressTravelMap"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:indeterminate="true"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@id/googleMapContainer"
+        app:layout_constraintEnd_toEndOf="@id/googleMapContainer"
+        app:layout_constraintStart_toStartOf="@id/googleMapContainer"
+        app:layout_constraintTop_toTopOf="@id/googleMapContainer" />
+
+    <LinearLayout
+        android:id="@+id/mapInfoPanel"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_map_info"
+        android:orientation="vertical"
+        android:padding="18dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
 
         <TextView
-            android:id="@+id/textMapMarker"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:layout_gravity="center"
-            android:background="@drawable/bg_icon_circle_map"
-            android:gravity="center"
-            android:text="@string/map_marker_empty"
-            android:textColor="@color/white"
-            android:textSize="24sp"
-            android:textStyle="bold" />
-
-        <LinearLayout
-            android:id="@+id/mapEmptyInfo"
+            android:id="@+id/textTravelMapMessage"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            android:background="@drawable/bg_map_info"
-            android:orientation="vertical"
-            android:padding="18dp">
+            android:text="@string/map_empty_title"
+            android:textColor="@color/momentrip_ink"
+            android:textSize="17sp"
+            android:textStyle="bold" />
 
-            <TextView
-                android:id="@+id/textTravelMapMessage"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/map_empty_title"
-                android:textColor="@color/momentrip_ink"
-                android:textSize="17sp"
-                android:textStyle="bold" />
+        <TextView
+            android:id="@+id/textTravelMapGuide"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:lineSpacingExtra="3dp"
+            android:text="@string/map_empty_message"
+            android:textColor="@color/momentrip_muted"
+            android:textSize="13sp" />
 
-            <TextView
-                android:id="@+id/textTravelMapGuide"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:lineSpacingExtra="3dp"
-                android:text="@string/map_empty_message"
-                android:textColor="@color/momentrip_muted"
-                android:textSize="13sp" />
-
-        </LinearLayout>
-
-    </FrameLayout>
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

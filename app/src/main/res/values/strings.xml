@@ -1,11 +1,11 @@
-<resources>
+﻿<resources>
     <string name="app_name">Momentrip</string>
     <string name="app_name_lower">momentrip</string>
     <string name="badge_sqlite">SQLite</string>
     <string name="badge_travel_log">여행 기록</string>
     <string name="badge_location">위치</string>
     <string name="main_title">여행을 기록하는 시간</string>
-    <string name="main_subtitle">사진, 메모, 방문일을 한곳에 정리하고 오래 남길 순간을 빠르게 찾아보세요.</string>
+    <string name="main_subtitle">사진, 메모, 방문일을 차분하게 정리하고 오래 남길 순간을 빠르게 찾아보세요.</string>
     <string name="tab_list">기록 목록</string>
     <string name="tab_map">지도 보기</string>
     <string name="menu_add">새 기록</string>
@@ -29,12 +29,19 @@
     <string name="toast_delete_count">%1$d개 기록을 삭제했습니다.</string>
     <string name="toast_deleted">삭제했습니다.</string>
     <string name="toast_delete_failed">삭제하지 못했습니다.</string>
+    <string name="toast_delete_all_failed">전체 삭제하지 못했습니다.</string>
+    <string name="toast_load_failed">불러오지 못했습니다.</string>
     <string name="toast_record_not_found">기록을 찾을 수 없습니다.</string>
     <string name="toast_place_date_required">여행지와 날짜를 입력하세요.</string>
     <string name="toast_saved">저장했습니다.</string>
     <string name="toast_save_failed">저장하지 못했습니다.</string>
     <string name="toast_camera_failed">카메라를 실행하지 못했습니다.</string>
+    <string name="toast_gallery_failed">갤러리를 실행하지 못했습니다.</string>
+    <string name="toast_image_failed">사진을 불러오지 못했습니다.</string>
+    <string name="toast_map_failed">지도를 불러오지 못했습니다.</string>
+    <string name="toast_gps_missing">사진에 위치 정보가 없습니다.</string>
     <string name="error_screen_change">화면 전환 중 오류가 발생했습니다.</string>
+    <string name="error_dialog_failed">창을 표시하지 못했습니다.</string>
     <string name="list_title">여행 기록 목록</string>
     <string name="list_description">방문한 장소, 날짜, 사진과 메모를 한눈에 확인하세요.</string>
     <string name="list_empty_title">저장된 여행 기록이 없습니다.</string>
@@ -42,7 +49,7 @@
     <string name="item_no_memo">메모 없음</string>
     <string name="map_title">지도 보기</string>
     <string name="map_description">좌표가 저장된 여행 기록을 지도 패널에서 확인하세요.</string>
-    <string name="map_marker_empty">◎</string>
+    <string name="map_marker_empty">기록 없음</string>
     <string name="map_empty_title">위치가 저장된 여행 기록이 없습니다.</string>
     <string name="map_empty_message">기록 추가 화면에서 위도와 경도를 입력하면 이곳에 표시됩니다.</string>
     <string name="map_count_message">%1$d개 장소가 저장되어 있습니다.</string>

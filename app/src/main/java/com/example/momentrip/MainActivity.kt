@@ -3,7 +3,9 @@ package com.example.momentrip
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import android.widget.Button
+import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -14,6 +16,7 @@ class MainActivity : AppCompatActivity() {
     lateinit var buttonTravelList: Button
     lateinit var buttonTravelMap: Button
     private lateinit var dbHelper: TravelDBHelper
+    private lateinit var progressBar: ProgressBar
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -22,6 +25,7 @@ class MainActivity : AppCompatActivity() {
         dbHelper = TravelDBHelper(this)
         buttonTravelList = findViewById(R.id.buttonTravelList)
         buttonTravelMap = findViewById(R.id.buttonTravelMap)
+        progressBar = findViewById(R.id.progressMain)
         findViewById<TextView>(R.id.textMainTitle).setText(R.string.main_title)
         findViewById<TextView>(R.id.textMainSubTitle).setText(R.string.main_subtitle)
         buttonTravelList.setText(R.string.tab_list)
@@ -44,42 +48,46 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menu.add(0, MENU_ADD, 0, getString(R.string.menu_add))
-        menu.add(0, MENU_SORT_DATE, 1, getString(R.string.menu_sort_date))
-        menu.add(0, MENU_SORT_PLACE, 2, getString(R.string.menu_sort_place))
-        menu.add(0, MENU_DELETE_ALL, 3, getString(R.string.menu_delete_all))
-        menu.add(0, MENU_INFO, 4, getString(R.string.menu_info))
+        menuInflater.inflate(R.menu.menu_main, menu)
         return true
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
-            MENU_ADD -> {
-                AddEditActivity.start(this)
+            R.id.menuAdd -> {
+                try {
+                    AddEditActivity.start(this)
+                } catch (_: Exception) {
+                    Toast.makeText(this, R.string.error_screen_change, Toast.LENGTH_SHORT).show()
+                }
                 true
             }
-            MENU_SORT_DATE -> {
+            R.id.menuSortDate -> {
                 TravelListFragment.sortMode = TravelListFragment.SortMode.DATE
                 selectTab(true)
                 showFragment(TravelListFragment(), true)
                 true
             }
-            MENU_SORT_PLACE -> {
+            R.id.menuSortPlace -> {
                 TravelListFragment.sortMode = TravelListFragment.SortMode.PLACE
                 selectTab(true)
                 showFragment(TravelListFragment(), true)
                 true
             }
-            MENU_DELETE_ALL -> {
+            R.id.menuDeleteAll -> {
                 confirmDeleteAll()
                 true
             }
-            MENU_INFO -> {
-                AlertDialog.Builder(this)
-                    .setTitle(R.string.app_name)
-                    .setMessage(R.string.dialog_app_info_message)
-                    .setPositiveButton(R.string.action_ok, null)
-                    .show()
+            R.id.menuInfo -> {
+                try {
+                    AlertDialog.Builder(this)
+                        .setTitle(R.string.app_name)
+                        .setMessage(R.string.dialog_app_info_message)
+                        .setPositiveButton(R.string.action_ok, null)
+                        .show()
+                } catch (_: Exception) {
+                    Toast.makeText(this, R.string.error_dialog_failed, Toast.LENGTH_SHORT).show()
+                }
                 true
             }
             else -> super.onOptionsItemSelected(item)
@@ -119,24 +127,39 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun confirmDeleteAll() {
-        AlertDialog.Builder(this)
-            .setTitle(R.string.dialog_delete_all_title)
-            .setMessage(R.string.dialog_delete_all_message)
-            .setNegativeButton(R.string.action_cancel, null)
-            .setPositiveButton(R.string.action_delete) { _, _ ->
-                val count = dbHelper.deleteAllTravels()
+        try {
+            AlertDialog.Builder(this)
+                .setTitle(R.string.dialog_delete_all_title)
+                .setMessage(R.string.dialog_delete_all_message)
+                .setNegativeButton(R.string.action_cancel, null)
+                .setPositiveButton(R.string.action_delete) { _, _ ->
+                    deleteAllRecords()
+                }
+                .show()
+        } catch (_: Exception) {
+            Toast.makeText(this, R.string.toast_delete_all_failed, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun deleteAllRecords() {
+        progressBar.visibility = View.VISIBLE
+        Thread {
+            val count = try {
+                dbHelper.deleteAllTravels()
+            } catch (_: Exception) {
+                -1
+            }
+
+            runOnUiThread {
+                progressBar.visibility = View.GONE
+                if (count < 0) {
+                    Toast.makeText(this, R.string.toast_delete_all_failed, Toast.LENGTH_SHORT).show()
+                    return@runOnUiThread
+                }
                 Toast.makeText(this, getString(R.string.toast_delete_count, count), Toast.LENGTH_SHORT).show()
                 selectTab(true)
                 showFragment(TravelListFragment(), true)
             }
-            .show()
-    }
-
-    companion object {
-        private const val MENU_ADD = 1
-        private const val MENU_SORT_DATE = 2
-        private const val MENU_SORT_PLACE = 3
-        private const val MENU_DELETE_ALL = 4
-        private const val MENU_INFO = 5
+        }.start()
     }
 }

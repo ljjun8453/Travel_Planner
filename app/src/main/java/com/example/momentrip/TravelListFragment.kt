@@ -7,6 +7,7 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -19,6 +20,7 @@ class TravelListFragment : Fragment(), TravelAdapter.Listener {
     private lateinit var adapter: TravelAdapter
     private lateinit var recyclerView: RecyclerView
     private lateinit var emptyBox: View
+    private lateinit var progressBar: ProgressBar
     private var contextRecord: TravelRecord? = null
 
     override fun onCreateView(
@@ -37,6 +39,7 @@ class TravelListFragment : Fragment(), TravelAdapter.Listener {
         view.findViewById<TextView>(R.id.textTravelListGuide).setText(R.string.list_empty_message)
         view.findViewById<Button>(R.id.buttonAddFirst).setOnClickListener { AddEditActivity.start(requireContext()) }
         emptyBox = view.findViewById(R.id.listEmptyBox)
+        progressBar = view.findViewById(R.id.progressTravelList)
         recyclerView = view.findViewById(R.id.recyclerTravelRecords)
         adapter = TravelAdapter(mutableListOf(), this)
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
@@ -54,30 +57,41 @@ class TravelListFragment : Fragment(), TravelAdapter.Listener {
     }
 
     override fun onRecordClick(record: TravelRecord) {
-        DetailActivity.start(requireContext(), record.no)
+        try {
+            DetailActivity.start(requireContext(), record.no)
+        } catch (_: Exception) {
+            context?.let { Toast.makeText(it, R.string.error_screen_change, Toast.LENGTH_SHORT).show() }
+        }
     }
 
     override fun onRecordLongClick(record: TravelRecord, anchor: View) {
-        contextRecord = record
-        registerForContextMenu(anchor)
-        anchor.showContextMenu()
+        try {
+            contextRecord = record
+            registerForContextMenu(anchor)
+            anchor.showContextMenu()
+        } catch (_: Exception) {
+            context?.let { Toast.makeText(it, R.string.error_dialog_failed, Toast.LENGTH_SHORT).show() }
+        }
     }
 
     override fun onCreateContextMenu(menu: ContextMenu, v: View, menuInfo: ContextMenu.ContextMenuInfo?) {
         super.onCreateContextMenu(menu, v, menuInfo)
         menu.setHeaderTitle(contextRecord?.place ?: getString(R.string.list_title))
-        menu.add(0, MENU_EDIT, 0, getString(R.string.action_edit))
-        menu.add(0, MENU_DELETE, 1, getString(R.string.action_delete))
+        requireActivity().menuInflater.inflate(R.menu.menu_travel_context, menu)
     }
 
     override fun onContextItemSelected(item: MenuItem): Boolean {
         val record = contextRecord ?: return super.onContextItemSelected(item)
         return when (item.itemId) {
-            MENU_EDIT -> {
-                AddEditActivity.start(requireContext(), record.no)
+            R.id.menuContextEdit -> {
+                try {
+                    AddEditActivity.start(requireContext(), record.no)
+                } catch (_: Exception) {
+                    context?.let { Toast.makeText(it, R.string.error_screen_change, Toast.LENGTH_SHORT).show() }
+                }
                 true
             }
-            MENU_DELETE -> {
+            R.id.menuContextDelete -> {
                 confirmDelete(record)
                 true
             }
@@ -86,30 +100,73 @@ class TravelListFragment : Fragment(), TravelAdapter.Listener {
     }
 
     private fun loadRecords() {
-        val records = when (sortMode) {
-            SortMode.DATE -> dbHelper.getAllTravelsOrderByDate()
-            SortMode.PLACE -> dbHelper.getAllTravelsOrderByPlace()
-            SortMode.DEFAULT -> dbHelper.getAllTravels()
-        }
-        adapter.submitList(records)
-        emptyBox.visibility = if (records.isEmpty()) View.VISIBLE else View.GONE
-        recyclerView.visibility = if (records.isEmpty()) View.GONE else View.VISIBLE
+        progressBar.visibility = View.VISIBLE
+        emptyBox.visibility = View.GONE
+        recyclerView.visibility = View.GONE
+
+        Thread {
+            var loadFailed = false
+            val records: List<TravelRecord> = try {
+                when (sortMode) {
+                    SortMode.DATE -> dbHelper.getAllTravelsOrderByDate()
+                    SortMode.PLACE -> dbHelper.getAllTravelsOrderByPlace()
+                    SortMode.DEFAULT -> dbHelper.getAllTravels()
+                }
+            } catch (_: Exception) {
+                loadFailed = true
+                emptyList()
+            }
+
+            activity?.runOnUiThread {
+                if (!isAdded) {
+                    return@runOnUiThread
+                }
+                progressBar.visibility = View.GONE
+                if (loadFailed) {
+                    Toast.makeText(requireContext(), R.string.toast_load_failed, Toast.LENGTH_SHORT).show()
+                }
+                adapter.submitList(records)
+                emptyBox.visibility = if (records.isEmpty()) View.VISIBLE else View.GONE
+                recyclerView.visibility = if (records.isEmpty()) View.GONE else View.VISIBLE
+            }
+        }.start()
     }
 
-    private fun confirmDelete(record: TravelRecord) {
-        AlertDialog.Builder(requireContext())
-            .setTitle(R.string.dialog_delete_title)
-            .setMessage(getString(R.string.dialog_delete_message, record.place))
-            .setNegativeButton(R.string.action_cancel, null)
-            .setPositiveButton(R.string.action_delete) { _, _ ->
-                if (dbHelper.deleteTravel(record.no) > 0) {
+    private fun deleteRecord(record: TravelRecord) {
+        Thread {
+            val deleted = try {
+                dbHelper.deleteTravel(record.no) > 0
+            } catch (_: Exception) {
+                false
+            }
+
+            activity?.runOnUiThread {
+                if (!isAdded) {
+                    return@runOnUiThread
+                }
+                if (deleted) {
                     Toast.makeText(requireContext(), R.string.toast_deleted, Toast.LENGTH_SHORT).show()
                     loadRecords()
                 } else {
                     Toast.makeText(requireContext(), R.string.toast_delete_failed, Toast.LENGTH_SHORT).show()
                 }
             }
-            .show()
+        }.start()
+    }
+
+    private fun confirmDelete(record: TravelRecord) {
+        try {
+            AlertDialog.Builder(requireContext())
+                .setTitle(R.string.dialog_delete_title)
+                .setMessage(getString(R.string.dialog_delete_message, record.place))
+                .setNegativeButton(R.string.action_cancel, null)
+                .setPositiveButton(R.string.action_delete) { _, _ ->
+                    deleteRecord(record)
+                }
+                .show()
+        } catch (_: Exception) {
+            context?.let { Toast.makeText(it, R.string.error_dialog_failed, Toast.LENGTH_SHORT).show() }
+        }
     }
 
     enum class SortMode {
@@ -119,8 +176,6 @@ class TravelListFragment : Fragment(), TravelAdapter.Listener {
     }
 
     companion object {
-        private const val MENU_EDIT = 1
-        private const val MENU_DELETE = 2
         var sortMode = SortMode.DEFAULT
     }
 }

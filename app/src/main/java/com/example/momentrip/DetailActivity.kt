@@ -5,8 +5,10 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.view.MenuItem
+import android.view.View
 import android.widget.Button
 import android.widget.ImageView
+import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -19,6 +21,7 @@ class DetailActivity : AppCompatActivity() {
     private lateinit var textVisitDate: TextView
     private lateinit var textMemo: TextView
     private lateinit var textLocation: TextView
+    private lateinit var progressBar: ProgressBar
     private var recordNo = 0
     private var currentRecord: TravelRecord? = null
 
@@ -35,9 +38,14 @@ class DetailActivity : AppCompatActivity() {
         textVisitDate = findViewById(R.id.detailTextVisitDate)
         textMemo = findViewById(R.id.detailTextMemo)
         textLocation = findViewById(R.id.detailTextLocation)
+        progressBar = findViewById(R.id.progressDetail)
 
         findViewById<Button>(R.id.buttonEditRecord).setOnClickListener {
-            currentRecord?.let { record -> AddEditActivity.start(this, record.no) }
+            try {
+                currentRecord?.let { record -> AddEditActivity.start(this, record.no) }
+            } catch (_: Exception) {
+                Toast.makeText(this, R.string.error_screen_change, Toast.LENGTH_SHORT).show()
+            }
         }
         findViewById<Button>(R.id.buttonDeleteRecord).setOnClickListener {
             currentRecord?.let { record -> confirmDelete(record) }
@@ -63,11 +71,27 @@ class DetailActivity : AppCompatActivity() {
     }
 
     private fun loadRecord() {
-        val record = dbHelper.getTravel(recordNo) ?: run {
-            Toast.makeText(this, R.string.toast_record_not_found, Toast.LENGTH_SHORT).show()
-            finish()
-            return
-        }
+        progressBar.visibility = View.VISIBLE
+        Thread {
+            val record = try {
+                dbHelper.getTravel(recordNo)
+            } catch (_: Exception) {
+                null
+            }
+
+            runOnUiThread {
+                progressBar.visibility = View.GONE
+                if (record == null) {
+                    Toast.makeText(this, R.string.toast_record_not_found, Toast.LENGTH_SHORT).show()
+                    finish()
+                    return@runOnUiThread
+                }
+                showRecord(record)
+            }
+        }.start()
+    }
+
+    private fun showRecord(record: TravelRecord) {
         currentRecord = record
         textPlace.text = record.place
         textVisitDate.text = record.visitDate
@@ -77,27 +101,56 @@ class DetailActivity : AppCompatActivity() {
         } else {
             getString(R.string.detail_no_location)
         }
-        if (record.photoUri.isNullOrBlank()) {
+        showPhoto(record.photoUri)
+    }
+
+    private fun showPhoto(photoUri: String?) {
+        try {
+            if (photoUri.isNullOrBlank()) {
+                imagePhoto.setImageResource(R.drawable.ic_launcher_foreground)
+            } else {
+                imagePhoto.setImageURI(Uri.parse(photoUri))
+            }
+        } catch (_: Exception) {
             imagePhoto.setImageResource(R.drawable.ic_launcher_foreground)
-        } else {
-            imagePhoto.setImageURI(Uri.parse(record.photoUri))
+            Toast.makeText(this, R.string.toast_image_failed, Toast.LENGTH_SHORT).show()
         }
     }
 
     private fun confirmDelete(record: TravelRecord) {
-        AlertDialog.Builder(this)
-            .setTitle(R.string.dialog_delete_title)
-            .setMessage(getString(R.string.dialog_delete_message, record.place))
-            .setNegativeButton(R.string.action_cancel, null)
-            .setPositiveButton(R.string.action_delete) { _, _ ->
-                if (dbHelper.deleteTravel(record.no) > 0) {
+        try {
+            AlertDialog.Builder(this)
+                .setTitle(R.string.dialog_delete_title)
+                .setMessage(getString(R.string.dialog_delete_message, record.place))
+                .setNegativeButton(R.string.action_cancel, null)
+                .setPositiveButton(R.string.action_delete) { _, _ ->
+                    deleteRecord(record)
+                }
+                .show()
+        } catch (_: Exception) {
+            Toast.makeText(this, R.string.toast_delete_failed, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun deleteRecord(record: TravelRecord) {
+        progressBar.visibility = View.VISIBLE
+        Thread {
+            val deleted = try {
+                dbHelper.deleteTravel(record.no) > 0
+            } catch (_: Exception) {
+                false
+            }
+
+            runOnUiThread {
+                progressBar.visibility = View.GONE
+                if (deleted) {
                     Toast.makeText(this, R.string.toast_deleted, Toast.LENGTH_SHORT).show()
                     finish()
                 } else {
                     Toast.makeText(this, R.string.toast_delete_failed, Toast.LENGTH_SHORT).show()
                 }
             }
-            .show()
+        }.start()
     }
 
     companion object {

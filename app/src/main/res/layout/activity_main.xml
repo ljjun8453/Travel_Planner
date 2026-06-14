@@ -144,4 +144,16 @@
 
     </FrameLayout>
 
+    <ProgressBar
+        android:id="@+id/progressMain"
+        android:layout_width="52dp"
+        android:layout_height="52dp"
+        android:elevation="20dp"
+        android:indeterminate="true"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@id/fragmentContainer"
+        app:layout_constraintEnd_toEndOf="@id/fragmentContainer"
+        app:layout_constraintStart_toStartOf="@id/fragmentContainer"
+        app:layout_constraintTop_toTopOf="@id/fragmentContainer" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

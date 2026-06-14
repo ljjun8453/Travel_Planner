@@ -44,10 +44,14 @@ class TravelAdapter(
             textPlace.text = record.place
             textDate.text = record.visitDate
             textMemo.text = record.memo ?: itemView.context.getString(R.string.item_no_memo)
-            if (record.photoUri.isNullOrBlank()) {
+            try {
+                if (record.photoUri.isNullOrBlank()) {
+                    imagePhoto.setImageResource(R.drawable.ic_launcher_foreground)
+                } else {
+                    imagePhoto.setImageURI(Uri.parse(record.photoUri))
+                }
+            } catch (_: Exception) {
                 imagePhoto.setImageResource(R.drawable.ic_launcher_foreground)
-            } else {
-                imagePhoto.setImageURI(Uri.parse(record.photoUri))
             }
             itemView.setOnClickListener { listener.onRecordClick(record) }
             itemView.setOnLongClickListener {
