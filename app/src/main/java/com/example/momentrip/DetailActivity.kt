@@ -13,6 +13,10 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class DetailActivity : AppCompatActivity() {
     private lateinit var dbHelper: TravelDBHelper
@@ -72,23 +76,23 @@ class DetailActivity : AppCompatActivity() {
 
     private fun loadRecord() {
         progressBar.visibility = View.VISIBLE
-        Thread {
-            val record = try {
-                dbHelper.getTravel(recordNo)
-            } catch (_: Exception) {
-                null
+        lifecycleScope.launch {
+            val record = withContext(Dispatchers.IO) {
+                try {
+                    dbHelper.getTravel(recordNo)
+                } catch (_: Exception) {
+                    null
+                }
             }
 
-            runOnUiThread {
-                progressBar.visibility = View.GONE
-                if (record == null) {
-                    Toast.makeText(this, R.string.toast_record_not_found, Toast.LENGTH_SHORT).show()
-                    finish()
-                    return@runOnUiThread
-                }
-                showRecord(record)
+            progressBar.visibility = View.GONE
+            if (record == null) {
+                Toast.makeText(this@DetailActivity, R.string.toast_record_not_found, Toast.LENGTH_SHORT).show()
+                finish()
+                return@launch
             }
-        }.start()
+            showRecord(record)
+        }
     }
 
     private fun showRecord(record: TravelRecord) {
@@ -134,23 +138,23 @@ class DetailActivity : AppCompatActivity() {
 
     private fun deleteRecord(record: TravelRecord) {
         progressBar.visibility = View.VISIBLE
-        Thread {
-            val deleted = try {
-                dbHelper.deleteTravel(record.no) > 0
-            } catch (_: Exception) {
-                false
-            }
-
-            runOnUiThread {
-                progressBar.visibility = View.GONE
-                if (deleted) {
-                    Toast.makeText(this, R.string.toast_deleted, Toast.LENGTH_SHORT).show()
-                    finish()
-                } else {
-                    Toast.makeText(this, R.string.toast_delete_failed, Toast.LENGTH_SHORT).show()
+        lifecycleScope.launch {
+            val deleted = withContext(Dispatchers.IO) {
+                try {
+                    dbHelper.deleteTravel(record.no) > 0
+                } catch (_: Exception) {
+                    false
                 }
             }
-        }.start()
+
+            progressBar.visibility = View.GONE
+            if (deleted) {
+                Toast.makeText(this@DetailActivity, R.string.toast_deleted, Toast.LENGTH_SHORT).show()
+                finish()
+            } else {
+                Toast.makeText(this@DetailActivity, R.string.toast_delete_failed, Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     companion object {

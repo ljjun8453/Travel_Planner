@@ -12,8 +12,12 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class TravelListFragment : Fragment(), TravelAdapter.Listener {
     private lateinit var dbHelper: TravelDBHelper
@@ -104,54 +108,55 @@ class TravelListFragment : Fragment(), TravelAdapter.Listener {
         emptyBox.visibility = View.GONE
         recyclerView.visibility = View.GONE
 
-        Thread {
-            var loadFailed = false
-            val records: List<TravelRecord> = try {
-                when (sortMode) {
-                    SortMode.DATE -> dbHelper.getAllTravelsOrderByDate()
-                    SortMode.PLACE -> dbHelper.getAllTravelsOrderByPlace()
-                    SortMode.DEFAULT -> dbHelper.getAllTravels()
+        viewLifecycleOwner.lifecycleScope.launch {
+            val result = withContext(Dispatchers.IO) {
+                try {
+                    Pair(
+                        when (sortMode) {
+                            SortMode.DATE -> dbHelper.getAllTravelsOrderByDate()
+                            SortMode.PLACE -> dbHelper.getAllTravelsOrderByPlace()
+                            SortMode.DEFAULT -> dbHelper.getAllTravels()
+                        },
+                        false
+                    )
+                } catch (_: Exception) {
+                    Pair(emptyList<TravelRecord>(), true)
                 }
-            } catch (_: Exception) {
-                loadFailed = true
-                emptyList()
             }
 
-            activity?.runOnUiThread {
-                if (!isAdded) {
-                    return@runOnUiThread
-                }
-                progressBar.visibility = View.GONE
-                if (loadFailed) {
-                    Toast.makeText(requireContext(), R.string.toast_load_failed, Toast.LENGTH_SHORT).show()
-                }
-                adapter.submitList(records)
-                emptyBox.visibility = if (records.isEmpty()) View.VISIBLE else View.GONE
-                recyclerView.visibility = if (records.isEmpty()) View.GONE else View.VISIBLE
+            if (!isAdded) {
+                return@launch
             }
-        }.start()
+            progressBar.visibility = View.GONE
+            if (result.second) {
+                Toast.makeText(requireContext(), R.string.toast_load_failed, Toast.LENGTH_SHORT).show()
+            }
+            adapter.submitList(result.first)
+            emptyBox.visibility = if (result.first.isEmpty()) View.VISIBLE else View.GONE
+            recyclerView.visibility = if (result.first.isEmpty()) View.GONE else View.VISIBLE
+        }
     }
 
     private fun deleteRecord(record: TravelRecord) {
-        Thread {
-            val deleted = try {
-                dbHelper.deleteTravel(record.no) > 0
-            } catch (_: Exception) {
-                false
+        viewLifecycleOwner.lifecycleScope.launch {
+            val deleted = withContext(Dispatchers.IO) {
+                try {
+                    dbHelper.deleteTravel(record.no) > 0
+                } catch (_: Exception) {
+                    false
+                }
             }
 
-            activity?.runOnUiThread {
-                if (!isAdded) {
-                    return@runOnUiThread
-                }
-                if (deleted) {
-                    Toast.makeText(requireContext(), R.string.toast_deleted, Toast.LENGTH_SHORT).show()
-                    loadRecords()
-                } else {
-                    Toast.makeText(requireContext(), R.string.toast_delete_failed, Toast.LENGTH_SHORT).show()
-                }
+            if (!isAdded) {
+                return@launch
             }
-        }.start()
+            if (deleted) {
+                Toast.makeText(requireContext(), R.string.toast_deleted, Toast.LENGTH_SHORT).show()
+                loadRecords()
+            } else {
+                Toast.makeText(requireContext(), R.string.toast_delete_failed, Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     private fun confirmDelete(record: TravelRecord) {

@@ -8,12 +8,16 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class TravelMapFragment : Fragment(), OnMapReadyCallback {
     private lateinit var dbHelper: TravelDBHelper
@@ -68,30 +72,28 @@ class TravelMapFragment : Fragment(), OnMapReadyCallback {
     }
 
     private fun loadLocations() {
-        if (!::dbHelper.isInitialized || !::progressBar.isInitialized) {
+        if (view == null || !::dbHelper.isInitialized || !::progressBar.isInitialized) {
             return
         }
         progressBar.visibility = View.VISIBLE
-        Thread {
-            var loadFailed = false
-            val records: List<TravelRecord> = try {
-                dbHelper.getTravelsWithLocation()
-            } catch (_: Exception) {
-                loadFailed = true
-                emptyList()
+        viewLifecycleOwner.lifecycleScope.launch {
+            val result = withContext(Dispatchers.IO) {
+                try {
+                    Pair(dbHelper.getTravelsWithLocation(), false)
+                } catch (_: Exception) {
+                    Pair(emptyList<TravelRecord>(), true)
+                }
             }
 
-            activity?.runOnUiThread {
-                if (!isAdded) {
-                    return@runOnUiThread
-                }
-                progressBar.visibility = View.GONE
-                if (loadFailed) {
-                    Toast.makeText(requireContext(), R.string.toast_map_failed, Toast.LENGTH_SHORT).show()
-                }
-                renderLocations(records)
+            if (!isAdded || view == null) {
+                return@launch
             }
-        }.start()
+            progressBar.visibility = View.GONE
+            if (result.second) {
+                Toast.makeText(requireContext(), R.string.toast_map_failed, Toast.LENGTH_SHORT).show()
+            }
+            renderLocations(result.first)
+        }
     }
 
     private fun renderLocations(records: List<TravelRecord>) {

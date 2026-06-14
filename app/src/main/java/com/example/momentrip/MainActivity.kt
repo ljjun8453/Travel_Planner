@@ -11,6 +11,10 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MainActivity : AppCompatActivity() {
     lateinit var buttonTravelList: Button
@@ -143,23 +147,23 @@ class MainActivity : AppCompatActivity() {
 
     private fun deleteAllRecords() {
         progressBar.visibility = View.VISIBLE
-        Thread {
-            val count = try {
-                dbHelper.deleteAllTravels()
-            } catch (_: Exception) {
-                -1
+        lifecycleScope.launch {
+            val count = withContext(Dispatchers.IO) {
+                try {
+                    dbHelper.deleteAllTravels()
+                } catch (_: Exception) {
+                    -1
+                }
             }
 
-            runOnUiThread {
-                progressBar.visibility = View.GONE
-                if (count < 0) {
-                    Toast.makeText(this, R.string.toast_delete_all_failed, Toast.LENGTH_SHORT).show()
-                    return@runOnUiThread
-                }
-                Toast.makeText(this, getString(R.string.toast_delete_count, count), Toast.LENGTH_SHORT).show()
-                selectTab(true)
-                showFragment(TravelListFragment(), true)
+            progressBar.visibility = View.GONE
+            if (count < 0) {
+                Toast.makeText(this@MainActivity, R.string.toast_delete_all_failed, Toast.LENGTH_SHORT).show()
+                return@launch
             }
-        }.start()
+            Toast.makeText(this@MainActivity, getString(R.string.toast_delete_count, count), Toast.LENGTH_SHORT).show()
+            selectTab(true)
+            showFragment(TravelListFragment(), true)
+        }
     }
 }

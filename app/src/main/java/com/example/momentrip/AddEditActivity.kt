@@ -17,7 +17,11 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
+import androidx.lifecycle.lifecycleScope
 import java.io.File
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class AddEditActivity : AppCompatActivity() {
     private lateinit var dbHelper: TravelDBHelper
@@ -104,29 +108,29 @@ class AddEditActivity : AppCompatActivity() {
 
     private fun loadRecord() {
         progressBar.visibility = View.VISIBLE
-        Thread {
-            val record = try {
-                dbHelper.getTravel(recordNo)
-            } catch (_: Exception) {
-                null
+        lifecycleScope.launch {
+            val record = withContext(Dispatchers.IO) {
+                try {
+                    dbHelper.getTravel(recordNo)
+                } catch (_: Exception) {
+                    null
+                }
             }
 
-            runOnUiThread {
-                progressBar.visibility = View.GONE
-                if (record == null) {
-                    Toast.makeText(this, R.string.toast_record_not_found, Toast.LENGTH_SHORT).show()
-                    finish()
-                    return@runOnUiThread
-                }
-                editPlace.setText(record.place)
-                editVisitDate.setText(record.visitDate)
-                editMemo.setText(record.memo.orEmpty())
-                editLatitude.setText(record.latitude?.toString().orEmpty())
-                editLongitude.setText(record.longitude?.toString().orEmpty())
-                selectedPhotoUri = record.photoUri
-                selectedPhotoUri?.let { showPhoto(Uri.parse(it)) }
+            progressBar.visibility = View.GONE
+            if (record == null) {
+                Toast.makeText(this@AddEditActivity, R.string.toast_record_not_found, Toast.LENGTH_SHORT).show()
+                finish()
+                return@launch
             }
-        }.start()
+            editPlace.setText(record.place)
+            editVisitDate.setText(record.visitDate)
+            editMemo.setText(record.memo.orEmpty())
+            editLatitude.setText(record.latitude?.toString().orEmpty())
+            editLongitude.setText(record.longitude?.toString().orEmpty())
+            selectedPhotoUri = record.photoUri
+            selectedPhotoUri?.let { showPhoto(Uri.parse(it)) }
+        }
     }
 
     private fun openGallery() {
@@ -205,23 +209,23 @@ class AddEditActivity : AppCompatActivity() {
 
     private fun saveRecordToDatabase(record: TravelRecord) {
         progressBar.visibility = View.VISIBLE
-        Thread {
-            val result = try {
-                if (recordNo > 0) dbHelper.updateTravel(record).toLong() else dbHelper.insertTravel(record)
-            } catch (_: Exception) {
-                -1L
-            }
-
-            runOnUiThread {
-                progressBar.visibility = View.GONE
-                if (result > 0) {
-                    Toast.makeText(this, R.string.toast_saved, Toast.LENGTH_SHORT).show()
-                    finish()
-                } else {
-                    Toast.makeText(this, R.string.toast_save_failed, Toast.LENGTH_SHORT).show()
+        lifecycleScope.launch {
+            val result = withContext(Dispatchers.IO) {
+                try {
+                    if (recordNo > 0) dbHelper.updateTravel(record).toLong() else dbHelper.insertTravel(record)
+                } catch (_: Exception) {
+                    -1L
                 }
             }
-        }.start()
+
+            progressBar.visibility = View.GONE
+            if (result > 0) {
+                Toast.makeText(this@AddEditActivity, R.string.toast_saved, Toast.LENGTH_SHORT).show()
+                finish()
+            } else {
+                Toast.makeText(this@AddEditActivity, R.string.toast_save_failed, Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     private fun showPhoto(uri: Uri) {
@@ -235,18 +239,19 @@ class AddEditActivity : AppCompatActivity() {
 
     private fun applyGpsFromPhoto(uri: Uri) {
         progressBar.visibility = View.VISIBLE
-        Thread {
-            val latLong = readGpsFromPhoto(uri)
-            runOnUiThread {
-                progressBar.visibility = View.GONE
-                if (latLong == null) {
-                    Toast.makeText(this, R.string.toast_gps_missing, Toast.LENGTH_SHORT).show()
-                    return@runOnUiThread
-                }
-                editLatitude.setText(latLong[0].toDouble().toString())
-                editLongitude.setText(latLong[1].toDouble().toString())
+        lifecycleScope.launch {
+            val latLong = withContext(Dispatchers.IO) {
+                readGpsFromPhoto(uri)
             }
-        }.start()
+
+            progressBar.visibility = View.GONE
+            if (latLong == null) {
+                Toast.makeText(this@AddEditActivity, R.string.toast_gps_missing, Toast.LENGTH_SHORT).show()
+                return@launch
+            }
+            editLatitude.setText(latLong[0].toDouble().toString())
+            editLongitude.setText(latLong[1].toDouble().toString())
+        }
     }
 
     private fun readGpsFromPhoto(uri: Uri): FloatArray? {
