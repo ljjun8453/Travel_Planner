@@ -9,16 +9,17 @@
     android:focusable="true"
     android:gravity="center_vertical"
     android:orientation="horizontal"
-    android:stateListAnimator="@animator/button_press"
-    android:padding="14dp">
+    android:padding="14dp"
+    android:stateListAnimator="@animator/button_press">
 
     <ImageView
         android:id="@+id/itemImagePhoto"
         android:layout_width="72dp"
         android:layout_height="72dp"
         android:background="@drawable/bg_empty_box"
-        android:contentDescription="@string/content_travel_photo"
-        android:scaleType="centerCrop" />
+        android:contentDescription="@string/content_selected_photo"
+        android:scaleType="centerCrop"
+        android:src="@drawable/momentrip1" />
 
     <LinearLayout
         android:layout_width="0dp"
@@ -42,6 +43,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
+            android:ellipsize="end"
+            android:maxLines="1"
             android:textColor="@color/momentrip_teal_dark"
             android:textSize="13sp"
             android:textStyle="bold" />
@@ -59,4 +62,3 @@
     </LinearLayout>
 
 </LinearLayout>
-

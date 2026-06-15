@@ -11,83 +11,100 @@ class TravelAdapter(
     private val records: MutableList<TravelRecord>,
     private val listener: Listener
 ) : RecyclerView.Adapter<TravelAdapter.TravelViewHolder>() {
+
+    private val selectedNumbers = mutableSetOf<Int>()
+
     interface Listener {
         fun onRecordClick(record: TravelRecord)
         fun onRecordLongClick(record: TravelRecord, anchor: View)
         fun onSelectionChanged(count: Int)
     }
 
-    private val selectedRecordNumbers = linkedSetOf<Int>()
-
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TravelViewHolder {
-        val binding = ItemTravelRecordBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        val binding = ItemTravelRecordBinding.inflate(
+            LayoutInflater.from(parent.context),
+            parent,
+            false
+        )
+
         return TravelViewHolder(binding)
     }
-
-    override fun getItemCount(): Int = records.size
 
     override fun onBindViewHolder(holder: TravelViewHolder, position: Int) {
         holder.bind(records[position])
     }
 
-    fun submitList(items: List<TravelRecord>) {
+    override fun getItemCount(): Int {
+        return records.size
+    }
+
+    fun submitList(newRecords: List<TravelRecord>) {
         records.clear()
-        records.addAll(items)
-        selectedRecordNumbers.removeAll { selectedNo -> items.none { it.no == selectedNo } }
-        notifyDataSetChanged()
-        listener.onSelectionChanged(selectedRecordNumbers.size)
-    }
+        records.addAll(newRecords)
+        selectedNumbers.clear()
 
-    fun getSelectedRecordNumbers(): List<Int> {
-        return selectedRecordNumbers.toList()
-    }
-
-    fun clearSelection() {
-        selectedRecordNumbers.clear()
         notifyDataSetChanged()
-        listener.onSelectionChanged(0)
+        listener.onSelectionChanged(selectedNumbers.size)
     }
 
     fun toggleSelection(record: TravelRecord) {
-        if (selectedRecordNumbers.contains(record.no)) {
-            selectedRecordNumbers.remove(record.no)
+        if (selectedNumbers.contains(record.no)) {
+            selectedNumbers.remove(record.no)
         } else {
-            selectedRecordNumbers.add(record.no)
+            selectedNumbers.add(record.no)
         }
+
         notifyDataSetChanged()
-        listener.onSelectionChanged(selectedRecordNumbers.size)
+        listener.onSelectionChanged(selectedNumbers.size)
     }
 
-    inner class TravelViewHolder(private val binding: ItemTravelRecordBinding) : RecyclerView.ViewHolder(binding.root) {
+    fun clearSelection() {
+        selectedNumbers.clear()
+        notifyDataSetChanged()
+        listener.onSelectionChanged(selectedNumbers.size)
+    }
+
+    fun getSelectedRecordNumbers(): List<Int> {
+        return selectedNumbers.toList()
+    }
+
+    inner class TravelViewHolder(
+        private val binding: ItemTravelRecordBinding
+    ) : RecyclerView.ViewHolder(binding.root) {
+
         fun bind(record: TravelRecord) {
             binding.itemTextPlace.text = record.place
             binding.itemTextDate.text = record.visitDate
-            binding.itemTextMemo.text = record.memo ?: binding.root.context.getString(R.string.item_no_memo)
-            binding.root.setBackgroundResource(if (selectedRecordNumbers.contains(record.no)) R.drawable.bg_fragment_card_selected else R.drawable.bg_fragment_card)
+
+            binding.itemTextMemo.text = if (record.memo.isNullOrBlank()) {
+                itemView.context.getString(R.string.item_no_memo)
+            } else {
+                record.memo
+            }
+
+            setRecordImage(record)
+
+            binding.root.isSelected = selectedNumbers.contains(record.no)
+
+            binding.root.setOnClickListener {
+                listener.onRecordClick(record)
+            }
+
+            binding.root.setOnLongClickListener {
+                listener.onRecordLongClick(record, binding.root)
+                true
+            }
+        }
+
+        private fun setRecordImage(record: TravelRecord) {
             try {
-                val firstPhoto = TravelPhotoStore.first(record.photoUri)
-                if (firstPhoto.isNullOrBlank()) {
-                    binding.itemImagePhoto.setImageResource(R.drawable.ic_launcher_foreground)
+                if (record.photoUri.isNullOrBlank()) {
+                    binding.itemImagePhoto.setImageResource(R.drawable.momentrip1)
                 } else {
-                    binding.itemImagePhoto.setImageURI(Uri.parse(firstPhoto))
+                    binding.itemImagePhoto.setImageURI(Uri.parse(record.photoUri))
                 }
             } catch (_: Exception) {
-                binding.itemImagePhoto.setImageResource(R.drawable.ic_launcher_foreground)
-            }
-            binding.root.setOnClickListener {
-                if (selectedRecordNumbers.isEmpty()) {
-                    listener.onRecordClick(record)
-                } else {
-                    toggleSelection(record)
-                }
-            }
-            binding.root.setOnLongClickListener {
-                if (selectedRecordNumbers.isEmpty()) {
-                    listener.onRecordLongClick(record, binding.root)
-                } else {
-                    toggleSelection(record)
-                }
-                true
+                binding.itemImagePhoto.setImageResource(R.drawable.momentrip1)
             }
         }
     }

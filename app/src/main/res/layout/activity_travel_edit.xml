@@ -23,7 +23,7 @@
             android:background="@drawable/bg_map_preview"
             android:contentDescription="@string/content_selected_photo"
             android:scaleType="centerCrop"
-            android:src="@drawable/ic_launcher_foreground" />
+            android:src="@drawable/momentrip1" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -64,7 +64,7 @@
             android:layout_height="54dp"
             android:layout_marginTop="18dp"
             android:background="@drawable/bg_input_field"
-            android:hint="제목"
+            android:hint="@string/hint_place"
             android:inputType="text"
             android:paddingStart="14dp"
             android:paddingEnd="14dp"
