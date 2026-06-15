@@ -1,43 +1,71 @@
 package com.example.momentrip
 
-import android.app.DatePickerDialog
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
-import android.widget.Button
-import android.widget.EditText
-import android.widget.ProgressBar
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import java.util.Calendar
+import com.example.momentrip.databinding.ActivityPlanEditBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class AddEditPlanActivity : AppCompatActivity() {
+    private lateinit var binding: ActivityPlanEditBinding
     private lateinit var dbHelper: TravelDBHelper
-    private lateinit var editPlace: EditText
-    private lateinit var editDate: EditText
-    private lateinit var editMemo: EditText
-    private lateinit var progressBar: ProgressBar
+    private var planNo = 0
+    private var selectedLatitude: Double? = null
+    private var selectedLongitude: Double? = null
+    private var selectedPlaceName = ""
+
+    private val locationLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        try {
+            if (result.resultCode == Activity.RESULT_OK) {
+                val data = result.data ?: return@registerForActivityResult
+                val place = data.getStringExtra(LocationPickerActivity.EXTRA_PLACE).orEmpty()
+                val latitude = data.getDoubleExtra(LocationPickerActivity.EXTRA_LATITUDE, Double.NaN)
+                val longitude = data.getDoubleExtra(LocationPickerActivity.EXTRA_LONGITUDE, Double.NaN)
+                if (!latitude.isNaN() && !longitude.isNaN()) {
+                    selectedPlaceName = place
+                    selectedLatitude = latitude
+                    selectedLongitude = longitude
+                    if (binding.editPlanPlace.text.toString().trim().isEmpty() && place.isNotBlank()) {
+                        binding.editPlanPlace.setText(place)
+                    }
+                    updateSelectedLocationText()
+                }
+            }
+        } catch (_: Exception) {
+            Toast.makeText(this, R.string.toast_location_search_failed, Toast.LENGTH_SHORT).show()
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_plan_edit)
+        binding = ActivityPlanEditBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        title = getString(R.string.plan_edit_title_new)
 
         dbHelper = TravelDBHelper(this)
-        editPlace = findViewById(R.id.editPlanPlace)
-        editDate = findViewById(R.id.editPlanDate)
-        editMemo = findViewById(R.id.editPlanMemo)
-        progressBar = findViewById(R.id.progressPlanEdit)
-        editDate.setOnClickListener { showDatePicker() }
-        findViewById<Button>(R.id.buttonCancelPlan).setOnClickListener { finish() }
-        findViewById<Button>(R.id.buttonSavePlan).setOnClickListener { savePlan() }
+        planNo = intent.getIntExtra(EXTRA_PLAN_NO, 0)
+        binding.editPlanDate.setOnClickListener { showDateTimePicker() }
+        binding.buttonSelectPlanLocation.setOnClickListener { openLocationPicker() }
+        binding.buttonCancelPlan.setOnClickListener { finish() }
+        binding.buttonSavePlan.setOnClickListener { savePlan() }
+
+        if (planNo > 0) {
+            title = getString(R.string.plan_edit_title_update)
+            binding.textPlanEditTitle.setText(R.string.plan_edit_title_update)
+            loadPlan()
+        } else {
+            title = getString(R.string.plan_edit_title_new)
+            binding.textPlanEditTitle.setText(R.string.plan_edit_title_new)
+        }
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -53,48 +81,79 @@ class AddEditPlanActivity : AppCompatActivity() {
         super.onDestroy()
     }
 
-    private fun showDatePicker() {
+    private fun showDateTimePicker() {
         try {
-            val calendar = Calendar.getInstance()
-            DatePickerDialog(
-                this,
-                { _, year, month, day ->
-                    editDate.setText(String.format("%04d-%02d-%02d", year, month + 1, day))
-                },
-                calendar.get(Calendar.YEAR),
-                calendar.get(Calendar.MONTH),
-                calendar.get(Calendar.DAY_OF_MONTH)
-            ).show()
+            DateTimeRangePicker.show(this) { value ->
+                binding.editPlanDate.setText(value)
+            }
         } catch (_: Exception) {
             Toast.makeText(this, R.string.error_dialog_failed, Toast.LENGTH_SHORT).show()
         }
     }
 
+    private fun openLocationPicker() {
+        try {
+            locationLauncher.launch(LocationPickerActivity.createIntent(this))
+        } catch (_: Exception) {
+            Toast.makeText(this, R.string.error_screen_change, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun loadPlan() {
+        binding.progressPlanEdit.visibility = View.VISIBLE
+        lifecycleScope.launch {
+            val plan = withContext(Dispatchers.IO) {
+                try {
+                    dbHelper.getPlan(planNo)
+                } catch (_: Exception) {
+                    null
+                }
+            }
+
+            binding.progressPlanEdit.visibility = View.GONE
+            if (plan == null) {
+                Toast.makeText(this@AddEditPlanActivity, R.string.toast_plan_not_found, Toast.LENGTH_SHORT).show()
+                finish()
+                return@launch
+            }
+            binding.editPlanPlace.setText(plan.place)
+            binding.editPlanDate.setText(plan.planDate)
+            binding.editPlanMemo.setText(plan.memo.orEmpty())
+            selectedLatitude = plan.latitude
+            selectedLongitude = plan.longitude
+            selectedPlaceName = plan.place
+            updateSelectedLocationText()
+        }
+    }
+
     private fun savePlan() {
-        val place = editPlace.text.toString().trim()
-        val planDate = editDate.text.toString().trim()
+        val place = binding.editPlanPlace.text.toString().trim()
+        val planDate = binding.editPlanDate.text.toString().trim()
         if (place.isEmpty() || planDate.isEmpty()) {
             Toast.makeText(this, R.string.toast_plan_place_date_required, Toast.LENGTH_SHORT).show()
             return
         }
 
         val plan = TravelPlan(
+            no = planNo,
             place = place,
             planDate = planDate,
-            memo = editMemo.text.toString().trim().ifEmpty { null }
+            memo = binding.editPlanMemo.text.toString().trim().ifEmpty { null },
+            latitude = selectedLatitude,
+            longitude = selectedLongitude
         )
 
-        progressBar.visibility = View.VISIBLE
+        binding.progressPlanEdit.visibility = View.VISIBLE
         lifecycleScope.launch {
             val result = withContext(Dispatchers.IO) {
                 try {
-                    dbHelper.insertPlan(plan)
+                    if (planNo > 0) dbHelper.updatePlan(plan).toLong() else dbHelper.insertPlan(plan)
                 } catch (_: Exception) {
                     -1L
                 }
             }
 
-            progressBar.visibility = View.GONE
+            binding.progressPlanEdit.visibility = View.GONE
             if (result > 0) {
                 Toast.makeText(this@AddEditPlanActivity, R.string.toast_plan_saved, Toast.LENGTH_SHORT).show()
                 finish()
@@ -104,9 +163,21 @@ class AddEditPlanActivity : AppCompatActivity() {
         }
     }
 
+    private fun updateSelectedLocationText() {
+        val latitude = selectedLatitude
+        val longitude = selectedLongitude
+        binding.textPlanSelectedLocation.text = if (latitude == null || longitude == null) {
+            getString(R.string.selected_location_empty)
+        } else {
+            getString(R.string.selected_location_format, selectedPlaceName.ifBlank { binding.editPlanPlace.text.toString().trim() }, latitude, longitude)
+        }
+    }
+
     companion object {
-        fun start(context: Context) {
-            context.startActivity(Intent(context, AddEditPlanActivity::class.java))
+        private const val EXTRA_PLAN_NO = "plan_no"
+
+        fun start(context: Context, planNo: Int = 0) {
+            context.startActivity(Intent(context, AddEditPlanActivity::class.java).putExtra(EXTRA_PLAN_NO, planNo))
         }
     }
 }

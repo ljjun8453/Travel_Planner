@@ -1,12 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="@dimen/list_item_card_height"
     android:layout_marginBottom="12dp"
     android:background="@drawable/bg_fragment_card"
-    android:elevation="2dp"
+    android:clickable="true"
+    android:elevation="1dp"
+    android:focusable="true"
     android:gravity="center_vertical"
     android:orientation="horizontal"
+    android:stateListAnimator="@animator/button_press"
     android:padding="14dp">
 
     <ImageView
@@ -56,3 +59,4 @@
     </LinearLayout>
 
 </LinearLayout>
+

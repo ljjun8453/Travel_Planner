@@ -6,14 +6,11 @@ import android.net.Uri
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
-import android.widget.Button
-import android.widget.ImageView
-import android.widget.ProgressBar
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.example.momentrip.databinding.ActivityDetailBinding
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -25,45 +22,31 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class DetailActivity : AppCompatActivity(), OnMapReadyCallback {
+    private lateinit var binding: ActivityDetailBinding
     private lateinit var dbHelper: TravelDBHelper
-    private lateinit var imagePhoto: ImageView
-    private lateinit var textPlace: TextView
-    private lateinit var textVisitDate: TextView
-    private lateinit var textMemo: TextView
-    private lateinit var textLocation: TextView
-    private lateinit var mapContainer: View
-    private lateinit var textMapNotice: TextView
-    private lateinit var progressBar: ProgressBar
     private var recordNo = 0
     private var currentRecord: TravelRecord? = null
     private var googleMap: GoogleMap? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_detail)
+        binding = ActivityDetailBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         title = getString(R.string.detail_title)
 
         dbHelper = TravelDBHelper(this)
         recordNo = intent.getIntExtra(EXTRA_RECORD_NO, 0)
-        imagePhoto = findViewById(R.id.detailImagePhoto)
-        textPlace = findViewById(R.id.detailTextPlace)
-        textVisitDate = findViewById(R.id.detailTextVisitDate)
-        textMemo = findViewById(R.id.detailTextMemo)
-        textLocation = findViewById(R.id.detailTextLocation)
-        mapContainer = findViewById(R.id.detailMapContainer)
-        textMapNotice = findViewById(R.id.detailMapNotice)
-        progressBar = findViewById(R.id.progressDetail)
         setupDetailMap()
 
-        findViewById<Button>(R.id.buttonEditRecord).setOnClickListener {
+        binding.buttonEditRecord.setOnClickListener {
             try {
                 currentRecord?.let { record -> AddEditActivity.start(this, record.no) }
             } catch (_: Exception) {
                 Toast.makeText(this, R.string.error_screen_change, Toast.LENGTH_SHORT).show()
             }
         }
-        findViewById<Button>(R.id.buttonDeleteRecord).setOnClickListener {
+        binding.buttonDeleteRecord.setOnClickListener {
             currentRecord?.let { record -> confirmDelete(record) }
         }
     }
@@ -73,8 +56,8 @@ class DetailActivity : AppCompatActivity(), OnMapReadyCallback {
             googleMap = map
             currentRecord?.let { showDetailMap(it) }
         } catch (_: Exception) {
-            textMapNotice.visibility = View.VISIBLE
-            textMapNotice.setText(R.string.toast_map_failed)
+            binding.detailMapNotice.visibility = View.VISIBLE
+            binding.detailMapNotice.setText(R.string.toast_map_failed)
             Toast.makeText(this, R.string.toast_map_failed, Toast.LENGTH_SHORT).show()
         }
     }
@@ -105,15 +88,15 @@ class DetailActivity : AppCompatActivity(), OnMapReadyCallback {
                 .commitNow()
             mapFragment.getMapAsync(this)
         } catch (_: Exception) {
-            mapContainer.visibility = View.GONE
-            textMapNotice.visibility = View.VISIBLE
-            textMapNotice.setText(R.string.toast_map_failed)
+            binding.detailMapContainer.visibility = View.GONE
+            binding.detailMapNotice.visibility = View.VISIBLE
+            binding.detailMapNotice.setText(R.string.toast_map_failed)
             Toast.makeText(this, R.string.toast_map_failed, Toast.LENGTH_SHORT).show()
         }
     }
 
     private fun loadRecord() {
-        progressBar.visibility = View.VISIBLE
+        binding.progressDetail.visibility = View.VISIBLE
         lifecycleScope.launch {
             val record = withContext(Dispatchers.IO) {
                 try {
@@ -123,7 +106,7 @@ class DetailActivity : AppCompatActivity(), OnMapReadyCallback {
                 }
             }
 
-            progressBar.visibility = View.GONE
+            binding.progressDetail.visibility = View.GONE
             if (record == null) {
                 Toast.makeText(this@DetailActivity, R.string.toast_record_not_found, Toast.LENGTH_SHORT).show()
                 finish()
@@ -135,10 +118,10 @@ class DetailActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private fun showRecord(record: TravelRecord) {
         currentRecord = record
-        textPlace.text = record.place
-        textVisitDate.text = record.visitDate
-        textMemo.text = record.memo ?: getString(R.string.item_no_memo)
-        textLocation.text = if (record.latitude != null && record.longitude != null) {
+        binding.detailTextPlace.text = record.place
+        binding.detailTextVisitDate.text = record.visitDate
+        binding.detailTextMemo.text = record.memo ?: getString(R.string.item_no_memo)
+        binding.detailTextLocation.text = if (record.latitude != null && record.longitude != null) {
             getString(R.string.detail_location_format, record.latitude, record.longitude)
         } else {
             getString(R.string.detail_no_location)
@@ -149,13 +132,14 @@ class DetailActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private fun showPhoto(photoUri: String?) {
         try {
-            if (photoUri.isNullOrBlank()) {
-                imagePhoto.setImageResource(R.drawable.ic_launcher_foreground)
+            val firstPhoto = TravelPhotoStore.first(photoUri)
+            if (firstPhoto.isNullOrBlank()) {
+                binding.detailImagePhoto.setImageResource(R.drawable.ic_launcher_foreground)
             } else {
-                imagePhoto.setImageURI(Uri.parse(photoUri))
+                binding.detailImagePhoto.setImageURI(Uri.parse(firstPhoto))
             }
         } catch (_: Exception) {
-            imagePhoto.setImageResource(R.drawable.ic_launcher_foreground)
+            binding.detailImagePhoto.setImageResource(R.drawable.ic_launcher_foreground)
             Toast.makeText(this, R.string.toast_image_failed, Toast.LENGTH_SHORT).show()
         }
     }
@@ -166,14 +150,14 @@ class DetailActivity : AppCompatActivity(), OnMapReadyCallback {
             val longitude = record.longitude
             if (latitude == null || longitude == null) {
                 googleMap?.clear()
-                mapContainer.visibility = View.GONE
-                textMapNotice.visibility = View.VISIBLE
-                textMapNotice.setText(R.string.detail_no_location)
+                binding.detailMapContainer.visibility = View.GONE
+                binding.detailMapNotice.visibility = View.VISIBLE
+                binding.detailMapNotice.setText(R.string.detail_no_location)
                 return
             }
 
-            mapContainer.visibility = View.VISIBLE
-            textMapNotice.visibility = View.GONE
+            binding.detailMapContainer.visibility = View.VISIBLE
+            binding.detailMapNotice.visibility = View.GONE
             val map = googleMap ?: return
             val position = LatLng(latitude, longitude)
             map.clear()
@@ -185,9 +169,9 @@ class DetailActivity : AppCompatActivity(), OnMapReadyCallback {
             )
             map.moveCamera(CameraUpdateFactory.newLatLngZoom(position, DETAIL_ZOOM))
         } catch (_: Exception) {
-            mapContainer.visibility = View.GONE
-            textMapNotice.visibility = View.VISIBLE
-            textMapNotice.setText(R.string.toast_map_failed)
+            binding.detailMapContainer.visibility = View.GONE
+            binding.detailMapNotice.visibility = View.VISIBLE
+            binding.detailMapNotice.setText(R.string.toast_map_failed)
             Toast.makeText(this, R.string.toast_map_failed, Toast.LENGTH_SHORT).show()
         }
     }
@@ -208,7 +192,7 @@ class DetailActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
     private fun deleteRecord(record: TravelRecord) {
-        progressBar.visibility = View.VISIBLE
+        binding.progressDetail.visibility = View.VISIBLE
         lifecycleScope.launch {
             val deleted = withContext(Dispatchers.IO) {
                 try {
@@ -218,7 +202,7 @@ class DetailActivity : AppCompatActivity(), OnMapReadyCallback {
                 }
             }
 
-            progressBar.visibility = View.GONE
+            binding.progressDetail.visibility = View.GONE
             if (deleted) {
                 Toast.makeText(this@DetailActivity, R.string.toast_deleted, Toast.LENGTH_SHORT).show()
                 finish()

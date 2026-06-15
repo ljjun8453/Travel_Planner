@@ -1,51 +1,55 @@
 package com.example.momentrip
 
 import android.app.Activity
-import android.app.DatePickerDialog
 import android.content.Context
 import android.content.Intent
 import android.media.ExifInterface
 import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
-import android.view.View
 import android.view.MenuItem
-import android.widget.Button
-import android.widget.EditText
-import android.widget.ImageView
-import android.widget.ProgressBar
+import android.view.View
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import androidx.lifecycle.lifecycleScope
+import com.example.momentrip.databinding.ActivityTravelEditBinding
 import java.io.File
-import java.util.Calendar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class AddEditActivity : AppCompatActivity() {
+    private lateinit var binding: ActivityTravelEditBinding
     private lateinit var dbHelper: TravelDBHelper
-    private lateinit var editPlace: EditText
-    private lateinit var editVisitDate: EditText
-    private lateinit var editMemo: EditText
-    private lateinit var editLatitude: EditText
-    private lateinit var editLongitude: EditText
-    private lateinit var imagePhoto: ImageView
-    private lateinit var progressBar: ProgressBar
     private var recordNo = 0
-    private var selectedPhotoUri: String? = null
+    private val selectedPhotoUris = mutableListOf<String>()
     private var cameraPhotoUri: Uri? = null
+    private var selectedLatitude: Double? = null
+    private var selectedLongitude: Double? = null
+    private var selectedPlaceName = ""
 
     private val galleryLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         try {
             if (result.resultCode == Activity.RESULT_OK) {
-                result.data?.data?.let { uri ->
-                    selectedPhotoUri = uri.toString()
-                    takePersistableUriPermissionSafe(uri)
-                    showPhoto(uri)
-                    applyGpsFromPhoto(uri)
+                val uris = mutableListOf<Uri>()
+                val clipData = result.data?.clipData
+                if (clipData != null) {
+                    for (index in 0 until clipData.itemCount) {
+                        uris.add(clipData.getItemAt(index).uri)
+                    }
+                } else {
+                    result.data?.data?.let { uris.add(it) }
+                }
+                if (uris.isNotEmpty()) {
+                    selectedPhotoUris.clear()
+                    uris.forEach { uri ->
+                        selectedPhotoUris.add(uri.toString())
+                        takePersistableUriPermissionSafe(uri)
+                    }
+                    showPhoto(uris.first())
+                    applyGpsFromPhotos(uris)
                 }
             }
         } catch (_: Exception) {
@@ -57,9 +61,10 @@ class AddEditActivity : AppCompatActivity() {
         try {
             if (result.resultCode == Activity.RESULT_OK) {
                 cameraPhotoUri?.let { uri ->
-                    selectedPhotoUri = uri.toString()
+                    selectedPhotoUris.clear()
+                    selectedPhotoUris.add(uri.toString())
                     showPhoto(uri)
-                    applyGpsFromPhoto(uri)
+                    applyGpsFromPhotos(listOf(uri))
                 }
             }
         } catch (_: Exception) {
@@ -67,26 +72,43 @@ class AddEditActivity : AppCompatActivity() {
         }
     }
 
+    private val locationLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        try {
+            if (result.resultCode == Activity.RESULT_OK) {
+                val data = result.data ?: return@registerForActivityResult
+                val place = data.getStringExtra(LocationPickerActivity.EXTRA_PLACE).orEmpty()
+                val latitude = data.getDoubleExtra(LocationPickerActivity.EXTRA_LATITUDE, Double.NaN)
+                val longitude = data.getDoubleExtra(LocationPickerActivity.EXTRA_LONGITUDE, Double.NaN)
+                if (!latitude.isNaN() && !longitude.isNaN()) {
+                    selectedPlaceName = place
+                    selectedLatitude = latitude
+                    selectedLongitude = longitude
+                    if (binding.editPlace.text.toString().trim().isEmpty() && place.isNotBlank()) {
+                        binding.editPlace.setText(place)
+                    }
+                    updateSelectedLocationText()
+                }
+            }
+        } catch (_: Exception) {
+            Toast.makeText(this, R.string.toast_location_search_failed, Toast.LENGTH_SHORT).show()
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_travel_edit)
+        binding = ActivityTravelEditBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
         dbHelper = TravelDBHelper(this)
         recordNo = intent.getIntExtra(EXTRA_RECORD_NO, 0)
-        editPlace = findViewById(R.id.editPlace)
-        editVisitDate = findViewById(R.id.editVisitDate)
-        editMemo = findViewById(R.id.editMemo)
-        editLatitude = findViewById(R.id.editLatitude)
-        editLongitude = findViewById(R.id.editLongitude)
-        imagePhoto = findViewById(R.id.imagePhoto)
-        progressBar = findViewById(R.id.progressAddEdit)
 
-        findViewById<Button>(R.id.buttonPickGallery).setOnClickListener { openGallery() }
-        findViewById<Button>(R.id.buttonTakePhoto).setOnClickListener { openCamera() }
-        findViewById<Button>(R.id.buttonSave).setOnClickListener { saveRecord() }
-        findViewById<Button>(R.id.buttonCancel).setOnClickListener { finish() }
-        editVisitDate.setOnClickListener { showDatePicker() }
+        binding.buttonPickGallery.setOnClickListener { openGallery() }
+        binding.buttonTakePhoto.setOnClickListener { openCamera() }
+        binding.buttonSave.setOnClickListener { saveRecord() }
+        binding.buttonCancel.setOnClickListener { finish() }
+        binding.editVisitDate.setOnClickListener { showDateTimePicker() }
+        binding.buttonSelectLocation.setOnClickListener { openLocationPicker() }
 
         if (recordNo > 0) {
             title = getString(R.string.edit_title_update)
@@ -110,7 +132,7 @@ class AddEditActivity : AppCompatActivity() {
     }
 
     private fun loadRecord() {
-        progressBar.visibility = View.VISIBLE
+        binding.progressAddEdit.visibility = View.VISIBLE
         lifecycleScope.launch {
             val record = withContext(Dispatchers.IO) {
                 try {
@@ -120,19 +142,22 @@ class AddEditActivity : AppCompatActivity() {
                 }
             }
 
-            progressBar.visibility = View.GONE
+            binding.progressAddEdit.visibility = View.GONE
             if (record == null) {
                 Toast.makeText(this@AddEditActivity, R.string.toast_record_not_found, Toast.LENGTH_SHORT).show()
                 finish()
                 return@launch
             }
-            editPlace.setText(record.place)
-            editVisitDate.setText(record.visitDate)
-            editMemo.setText(record.memo.orEmpty())
-            editLatitude.setText(record.latitude?.toString().orEmpty())
-            editLongitude.setText(record.longitude?.toString().orEmpty())
-            selectedPhotoUri = record.photoUri
-            selectedPhotoUri?.let { showPhoto(Uri.parse(it)) }
+            binding.editPlace.setText(record.place)
+            binding.editVisitDate.setText(record.visitDate)
+            binding.editMemo.setText(record.memo.orEmpty())
+            selectedLatitude = record.latitude
+            selectedLongitude = record.longitude
+            selectedPlaceName = record.place
+            selectedPhotoUris.clear()
+            selectedPhotoUris.addAll(TravelPhotoStore.split(record.photoUri))
+            selectedPhotoUris.firstOrNull()?.let { showPhoto(Uri.parse(it)) }
+            updateSelectedLocationText()
         }
     }
 
@@ -142,6 +167,7 @@ class AddEditActivity : AppCompatActivity() {
                 addCategory(Intent.CATEGORY_OPENABLE)
                 type = "image/*"
                 putExtra(Intent.EXTRA_MIME_TYPES, arrayOf("image/jpeg", "image/png", "image/webp"))
+                putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true)
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
             }
@@ -151,20 +177,21 @@ class AddEditActivity : AppCompatActivity() {
         }
     }
 
-    private fun showDatePicker() {
+    private fun showDateTimePicker() {
         try {
-            val calendar = Calendar.getInstance()
-            DatePickerDialog(
-                this,
-                { _, year, month, day ->
-                    editVisitDate.setText(String.format("%04d-%02d-%02d", year, month + 1, day))
-                },
-                calendar.get(Calendar.YEAR),
-                calendar.get(Calendar.MONTH),
-                calendar.get(Calendar.DAY_OF_MONTH)
-            ).show()
+            DateTimeRangePicker.show(this) { value ->
+                binding.editVisitDate.setText(value)
+            }
         } catch (_: Exception) {
             Toast.makeText(this, R.string.error_dialog_failed, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun openLocationPicker() {
+        try {
+            locationLauncher.launch(LocationPickerActivity.createIntent(this))
+        } catch (_: Exception) {
+            Toast.makeText(this, R.string.error_screen_change, Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -205,8 +232,8 @@ class AddEditActivity : AppCompatActivity() {
 
     private fun saveRecord() {
         try {
-            val place = editPlace.text.toString().trim()
-            val visitDate = editVisitDate.text.toString().trim()
+            val place = binding.editPlace.text.toString().trim()
+            val visitDate = binding.editVisitDate.text.toString().trim()
             if (place.isEmpty() || visitDate.isEmpty()) {
                 Toast.makeText(this, R.string.toast_place_date_required, Toast.LENGTH_SHORT).show()
                 return
@@ -216,10 +243,10 @@ class AddEditActivity : AppCompatActivity() {
                 no = recordNo,
                 place = place,
                 visitDate = visitDate,
-                memo = editMemo.text.toString().trim().ifEmpty { null },
-                photoUri = selectedPhotoUri,
-                latitude = editLatitude.text.toString().trim().toDoubleOrNull(),
-                longitude = editLongitude.text.toString().trim().toDoubleOrNull()
+                memo = binding.editMemo.text.toString().trim().ifEmpty { null },
+                photoUri = TravelPhotoStore.join(selectedPhotoUris),
+                latitude = selectedLatitude,
+                longitude = selectedLongitude
             )
             saveRecordToDatabase(record)
         } catch (_: Exception) {
@@ -228,7 +255,7 @@ class AddEditActivity : AppCompatActivity() {
     }
 
     private fun saveRecordToDatabase(record: TravelRecord) {
-        progressBar.visibility = View.VISIBLE
+        binding.progressAddEdit.visibility = View.VISIBLE
         lifecycleScope.launch {
             val result = withContext(Dispatchers.IO) {
                 try {
@@ -238,7 +265,7 @@ class AddEditActivity : AppCompatActivity() {
                 }
             }
 
-            progressBar.visibility = View.GONE
+            binding.progressAddEdit.visibility = View.GONE
             if (result > 0) {
                 Toast.makeText(this@AddEditActivity, R.string.toast_saved, Toast.LENGTH_SHORT).show()
                 finish()
@@ -250,27 +277,38 @@ class AddEditActivity : AppCompatActivity() {
 
     private fun showPhoto(uri: Uri) {
         try {
-            imagePhoto.setImageURI(uri)
+            binding.imagePhoto.setImageURI(uri)
         } catch (_: Exception) {
-            imagePhoto.setImageResource(R.drawable.ic_launcher_foreground)
+            binding.imagePhoto.setImageResource(R.drawable.ic_launcher_foreground)
             Toast.makeText(this, R.string.toast_image_failed, Toast.LENGTH_SHORT).show()
         }
     }
 
-    private fun applyGpsFromPhoto(uri: Uri) {
-        progressBar.visibility = View.VISIBLE
+    private fun applyGpsFromPhotos(uris: List<Uri>) {
+        binding.progressAddEdit.visibility = View.VISIBLE
         lifecycleScope.launch {
             val latLong = withContext(Dispatchers.IO) {
-                readGpsFromPhoto(uri)
+                uris.firstNotNullOfOrNull { uri -> readGpsFromPhoto(uri) }
             }
 
-            progressBar.visibility = View.GONE
+            binding.progressAddEdit.visibility = View.GONE
             if (latLong == null) {
                 Toast.makeText(this@AddEditActivity, R.string.toast_gps_missing, Toast.LENGTH_SHORT).show()
                 return@launch
             }
-            editLatitude.setText(latLong[0].toDouble().toString())
-            editLongitude.setText(latLong[1].toDouble().toString())
+            selectedLatitude = latLong[0].toDouble()
+            selectedLongitude = latLong[1].toDouble()
+            updateSelectedLocationText()
+        }
+    }
+
+    private fun updateSelectedLocationText() {
+        val latitude = selectedLatitude
+        val longitude = selectedLongitude
+        binding.textSelectedLocation.text = if (latitude == null || longitude == null) {
+            getString(R.string.selected_location_empty)
+        } else {
+            getString(R.string.selected_location_format, selectedPlaceName.ifBlank { binding.editPlace.text.toString().trim() }, latitude, longitude)
         }
     }
 

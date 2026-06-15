@@ -1,18 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android">
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
     <item
-        android:id="@+id/menuAdd"
-        android:title="@string/menu_add" />
+        android:id="@+id/menuAddRecord"
+        android:title="새 기록"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/menuAddPlan"
+        android:title="새 계획"
+        app:showAsAction="never" />
+
     <item
         android:id="@+id/menuSortDate"
-        android:title="@string/menu_sort_date" />
+        android:title="날짜순 정렬"
+        app:showAsAction="never" />
+
     <item
         android:id="@+id/menuSortPlace"
-        android:title="@string/menu_sort_place" />
+        android:title="제목순 정렬"
+        app:showAsAction="never" />
+
     <item
         android:id="@+id/menuDeleteAll"
-        android:title="@string/menu_delete_all" />
+        android:title="전체 삭제"
+        app:showAsAction="never" />
+
     <item
         android:id="@+id/menuInfo"
-        android:title="@string/menu_info" />
+        android:title="앱 정보"
+        app:showAsAction="never" />
+
 </menu>

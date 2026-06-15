@@ -2,7 +2,10 @@
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:state_selected="true">
         <shape>
-            <solid android:color="@color/momentrip_navy" />
+            <gradient
+                android:angle="0"
+                android:endColor="@color/momentrip_teal"
+                android:startColor="@color/momentrip_teal_dark" />
             <corners android:radius="18dp" />
         </shape>
     </item>

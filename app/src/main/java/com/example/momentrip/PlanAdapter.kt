@@ -1,22 +1,22 @@
 package com.example.momentrip
 
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.example.momentrip.databinding.ItemTravelPlanBinding
 
 class PlanAdapter(
     private val plans: MutableList<TravelPlan>,
     private val listener: Listener
 ) : RecyclerView.Adapter<PlanAdapter.PlanViewHolder>() {
     interface Listener {
+        fun onPlanClick(plan: TravelPlan)
         fun onPlanLongClick(plan: TravelPlan)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PlanViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_travel_plan, parent, false)
-        return PlanViewHolder(view)
+        val binding = ItemTravelPlanBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        return PlanViewHolder(binding)
     }
 
     override fun getItemCount(): Int = plans.size
@@ -31,16 +31,15 @@ class PlanAdapter(
         notifyDataSetChanged()
     }
 
-    inner class PlanViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val textPlace: TextView = itemView.findViewById(R.id.itemPlanPlace)
-        private val textDate: TextView = itemView.findViewById(R.id.itemPlanDate)
-        private val textMemo: TextView = itemView.findViewById(R.id.itemPlanMemo)
-
+    inner class PlanViewHolder(private val binding: ItemTravelPlanBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(plan: TravelPlan) {
-            textPlace.text = plan.place
-            textDate.text = plan.planDate
-            textMemo.text = plan.memo ?: itemView.context.getString(R.string.item_no_memo)
-            itemView.setOnLongClickListener {
+            binding.itemPlanPlace.text = plan.place
+            binding.itemPlanDate.text = plan.planDate
+            binding.itemPlanMemo.text = plan.memo ?: binding.root.context.getString(R.string.item_no_memo)
+            binding.root.setOnClickListener {
+                listener.onPlanClick(plan)
+            }
+            binding.root.setOnLongClickListener {
                 listener.onPlanLongClick(plan)
                 true
             }

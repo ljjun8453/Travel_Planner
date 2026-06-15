@@ -1,4 +1,4 @@
-﻿package com.example.momentrip
+package com.example.momentrip
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -18,13 +18,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class TravelMapFragment : Fragment() {
+class PlanMapFragment : Fragment() {
     private var _binding: FragmentTravelMapBinding? = null
     private val binding get() = _binding!!
 
     private lateinit var dbHelper: TravelDBHelper
     private var googleMap: GoogleMap? = null
-    private var records = listOf<TravelRecord>()
+    private var plans = listOf<TravelPlan>()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -39,15 +39,15 @@ class TravelMapFragment : Fragment() {
         dbHelper = TravelDBHelper(requireContext())
 
         binding.textTravelMapBadge.text = "위치"
-        binding.textTravelMapTitle.text = "여행 기록 지도"
-        binding.textTravelMapDescription.text = "위치가 저장된 여행 기록을 지도에서 확인하세요."
+        binding.textTravelMapTitle.text = "여행 계획 지도"
+        binding.textTravelMapDescription.text = "위치가 저장된 여행 계획을 지도에서 확인하세요."
 
         setupMap()
     }
 
     override fun onResume() {
         super.onResume()
-        loadRecords()
+        loadPlans()
     }
 
     override fun onDestroyView() {
@@ -89,16 +89,16 @@ class TravelMapFragment : Fragment() {
         }
     }
 
-    private fun loadRecords() {
+    private fun loadPlans() {
         val currentBinding = _binding ?: return
         currentBinding.progressTravelMap.visibility = View.VISIBLE
 
         viewLifecycleOwner.lifecycleScope.launch {
             val result = withContext(Dispatchers.IO) {
                 try {
-                    Pair(dbHelper.getAllTravels(), false)
+                    Pair(dbHelper.getAllPlans(), false)
                 } catch (_: Exception) {
-                    Pair(emptyList<TravelRecord>(), true)
+                    Pair(emptyList<TravelPlan>(), true)
                 }
             }
 
@@ -114,8 +114,8 @@ class TravelMapFragment : Fragment() {
                 Toast.makeText(requireContext(), R.string.toast_load_failed, Toast.LENGTH_SHORT).show()
             }
 
-            records = result.first.filter { record ->
-                record.latitude != null && record.longitude != null
+            plans = result.first.filter { plan ->
+                plan.latitude != null && plan.longitude != null
             }
 
             renderMarkers()
@@ -130,24 +130,24 @@ class TravelMapFragment : Fragment() {
             map.clear()
             setupMapOptions(map)
 
-            if (records.isEmpty()) {
+            if (plans.isEmpty()) {
                 currentBinding.textTravelMapMessage.text = "저장된 위치가 없습니다."
-                currentBinding.textTravelMapGuide.text = "사진 GPS 또는 위치 선택으로 위치가 저장된 기록이 지도에 표시됩니다."
+                currentBinding.textTravelMapGuide.text = "위치를 선택한 여행 계획이 지도에 표시됩니다."
                 currentBinding.mapInfoPanel.visibility = View.VISIBLE
                 return
             }
 
-            currentBinding.textTravelMapMessage.text = "${records.size}개 장소가 저장되어 있습니다."
-            currentBinding.textTravelMapGuide.text = makeLocationGuide(records)
+            currentBinding.textTravelMapMessage.text = "${plans.size}개 장소가 저장되어 있습니다."
+            currentBinding.textTravelMapGuide.text = makeLocationGuide(plans)
             currentBinding.mapInfoPanel.visibility = View.VISIBLE
 
             val boundsBuilder = LatLngBounds.Builder()
             var markerCount = 0
             var firstLatLng: LatLng? = null
 
-            records.forEach { record ->
-                val latitude = record.latitude ?: return@forEach
-                val longitude = record.longitude ?: return@forEach
+            plans.forEach { plan ->
+                val latitude = plan.latitude ?: return@forEach
+                val longitude = plan.longitude ?: return@forEach
 
                 val latLng = LatLng(latitude, longitude)
 
@@ -161,8 +161,8 @@ class TravelMapFragment : Fragment() {
                 map.addMarker(
                     MarkerOptions()
                         .position(latLng)
-                        .title(record.place)
-                        .snippet(record.visitDate)
+                        .title(plan.place)
+                        .snippet(plan.planDate)
                 )
             }
 
@@ -183,15 +183,15 @@ class TravelMapFragment : Fragment() {
         }
     }
 
-    private fun makeLocationGuide(records: List<TravelRecord>): String {
+    private fun makeLocationGuide(plans: List<TravelPlan>): String {
         return try {
-            records.take(3).joinToString("\n") { record ->
-                val latitude = record.latitude ?: 0.0
-                val longitude = record.longitude ?: 0.0
-                "${record.place} · $latitude, $longitude"
+            plans.take(3).joinToString("\n") { plan ->
+                val latitude = plan.latitude ?: 0.0
+                val longitude = plan.longitude ?: 0.0
+                "${plan.place} · $latitude, $longitude"
             }
         } catch (_: Exception) {
-            "위치가 저장된 기록을 지도에서 확인하세요."
+            "위치가 저장된 계획을 지도에서 확인하세요."
         }
     }
 
@@ -200,6 +200,6 @@ class TravelMapFragment : Fragment() {
     }
 
     companion object {
-        private const val MAP_TAG = "travel_record_map"
+        private const val MAP_TAG = "travel_plan_map"
     }
 }

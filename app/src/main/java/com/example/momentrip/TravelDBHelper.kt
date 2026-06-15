@@ -21,6 +21,9 @@ class TravelDBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         try {
             if (oldVersion < 2) {
                 db.execSQL(CREATE_TABLE_PLAN)
+            } else if (oldVersion < 3) {
+                db.execSQL("ALTER TABLE $TABLE_PLAN ADD COLUMN $SQL_COLUMN_LATITUDE REAL")
+                db.execSQL("ALTER TABLE $TABLE_PLAN ADD COLUMN $SQL_COLUMN_LONGITUDE REAL")
             }
         } catch (e: Exception) {
             Log.e(TAG, "onUpgrade error", e)
@@ -109,6 +112,25 @@ class TravelDBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         }
     }
 
+    fun deleteTravels(numbers: List<Int>): Int {
+        return try {
+            var count = 0
+            writableDatabase.beginTransaction()
+            try {
+                numbers.forEach { no ->
+                    count += writableDatabase.delete(TABLE_TRAVEL, "$SQL_COLUMN_NO = ?", arrayOf(no.toString()))
+                }
+                writableDatabase.setTransactionSuccessful()
+            } finally {
+                writableDatabase.endTransaction()
+            }
+            count
+        } catch (e: Exception) {
+            Log.e(TAG, "deleteTravels error", e)
+            0
+        }
+    }
+
     fun deleteAllTravels(): Int {
         return try {
             writableDatabase.delete(TABLE_TRAVEL, null, null)
@@ -154,6 +176,61 @@ class TravelDBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         }
     }
 
+    fun getPlansWithLocation(): ArrayList<TravelPlan> {
+        return try {
+            val plans = arrayListOf<TravelPlan>()
+            readableDatabase.rawQuery(
+                "SELECT * FROM $TABLE_PLAN WHERE $SQL_COLUMN_LATITUDE IS NOT NULL AND $SQL_COLUMN_LONGITUDE IS NOT NULL ORDER BY $SQL_COLUMN_PLAN_DATE ASC",
+                null
+            ).use { cursor ->
+                while (cursor.moveToNext()) {
+                    plans.add(cursorToTravelPlan(cursor))
+                }
+            }
+            plans
+        } catch (e: Exception) {
+            Log.e(TAG, "getPlansWithLocation error", e)
+            arrayListOf()
+        }
+    }
+
+    fun getPlan(no: Int): TravelPlan? {
+        return try {
+            readableDatabase.query(
+                TABLE_PLAN,
+                null,
+                "$SQL_COLUMN_NO = ?",
+                arrayOf(no.toString()),
+                null,
+                null,
+                null
+            ).use { cursor ->
+                if (cursor.moveToFirst()) {
+                    cursorToTravelPlan(cursor)
+                } else {
+                    null
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "getPlan error", e)
+            null
+        }
+    }
+
+    fun updatePlan(plan: TravelPlan): Int {
+        return try {
+            writableDatabase.update(
+                TABLE_PLAN,
+                createPlanContentValues(plan),
+                "$SQL_COLUMN_NO = ?",
+                arrayOf(plan.no.toString())
+            )
+        } catch (e: Exception) {
+            Log.e(TAG, "updatePlan error", e)
+            0
+        }
+    }
+
     fun deletePlan(no: Int): Int {
         return try {
             writableDatabase.delete(TABLE_PLAN, "$SQL_COLUMN_NO = ?", arrayOf(no.toString()))
@@ -191,6 +268,8 @@ class TravelDBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         values.put(COLUMN_PLACE, plan.place)
         values.put(COLUMN_PLAN_DATE, plan.planDate)
         putNullableString(values, COLUMN_MEMO, plan.memo)
+        putNullableDouble(values, COLUMN_LATITUDE, plan.latitude)
+        putNullableDouble(values, COLUMN_LONGITUDE, plan.longitude)
         return values
     }
 
@@ -213,12 +292,16 @@ class TravelDBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
 
     private fun cursorToTravelPlan(cursor: Cursor): TravelPlan {
         val memoIndex = cursor.getColumnIndexOrThrow(COLUMN_MEMO)
+        val latitudeIndex = cursor.getColumnIndex(COLUMN_LATITUDE)
+        val longitudeIndex = cursor.getColumnIndex(COLUMN_LONGITUDE)
 
         return TravelPlan(
             no = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_NO)),
             place = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_PLACE)),
             planDate = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_PLAN_DATE)),
-            memo = if (cursor.isNull(memoIndex)) null else cursor.getString(memoIndex)
+            memo = if (cursor.isNull(memoIndex)) null else cursor.getString(memoIndex),
+            latitude = if (latitudeIndex < 0 || cursor.isNull(latitudeIndex)) null else cursor.getDouble(latitudeIndex),
+            longitude = if (longitudeIndex < 0 || cursor.isNull(longitudeIndex)) null else cursor.getDouble(longitudeIndex)
         )
     }
 
@@ -240,7 +323,7 @@ class TravelDBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
 
     companion object {
         private const val DATABASE_NAME = "momentrip.db"
-        private const val DATABASE_VERSION = 2
+        private const val DATABASE_VERSION = 3
         private const val TABLE_TRAVEL = "travel_record"
         private const val TABLE_PLAN = "travel_plan"
         private const val COLUMN_NO = "no"
@@ -275,7 +358,9 @@ class TravelDBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                 "$SQL_COLUMN_NO INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "$SQL_COLUMN_PLACE TEXT NOT NULL, " +
                 "$SQL_COLUMN_PLAN_DATE TEXT NOT NULL, " +
-                "$SQL_COLUMN_MEMO TEXT" +
+                "$SQL_COLUMN_MEMO TEXT, " +
+                "$SQL_COLUMN_LATITUDE REAL, " +
+                "$SQL_COLUMN_LONGITUDE REAL" +
                 ")"
     }
 }

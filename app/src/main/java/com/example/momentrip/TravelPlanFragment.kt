@@ -4,44 +4,47 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
+import com.example.momentrip.databinding.FragmentTravelPlanBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class TravelPlanFragment : Fragment(), PlanAdapter.Listener {
+    private var _binding: FragmentTravelPlanBinding? = null
+    private val binding get() = _binding!!
+
     private lateinit var dbHelper: TravelDBHelper
     private lateinit var adapter: PlanAdapter
-    private lateinit var recyclerView: RecyclerView
-    private lateinit var emptyBox: View
-    private lateinit var progressBar: ProgressBar
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        return inflater.inflate(R.layout.fragment_travel_plan, container, false)
+        _binding = FragmentTravelPlanBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         dbHelper = TravelDBHelper(requireContext())
-        emptyBox = view.findViewById(R.id.planEmptyBox)
-        progressBar = view.findViewById(R.id.progressTravelPlan)
-        recyclerView = view.findViewById(R.id.recyclerTravelPlans)
-        adapter = PlanAdapter(mutableListOf(), this)
-        recyclerView.layoutManager = LinearLayoutManager(requireContext())
-        recyclerView.adapter = adapter
-        view.findViewById<Button>(R.id.buttonAddPlanFirst).setOnClickListener {
-            AddEditPlanActivity.start(requireContext())
+
+        binding.buttonAddPlanIcon.setOnClickListener {
+            openNewPlan()
         }
+
+        binding.buttonAddPlanBottom.setOnClickListener {
+            openNewPlan()
+        }
+
+        adapter = PlanAdapter(mutableListOf(), this)
+        binding.recyclerTravelPlans.layoutManager = LinearLayoutManager(requireContext())
+        binding.recyclerTravelPlans.adapter = adapter
+        binding.recyclerTravelPlans.isNestedScrollingEnabled = false
     }
 
     override fun onResume() {
@@ -51,41 +54,109 @@ class TravelPlanFragment : Fragment(), PlanAdapter.Listener {
 
     override fun onDestroyView() {
         dbHelper.close()
+        _binding = null
         super.onDestroyView()
     }
 
+    override fun onPlanClick(plan: TravelPlan) {
+        try {
+            AddEditPlanActivity.start(requireContext(), plan.no)
+        } catch (_: Exception) {
+            context?.let {
+                Toast.makeText(it, R.string.error_screen_change, Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
     override fun onPlanLongClick(plan: TravelPlan) {
-        confirmDelete(plan)
+        showPlanMenu(plan)
     }
 
     private fun loadPlans() {
-        progressBar.visibility = View.VISIBLE
-        emptyBox.visibility = View.GONE
-        recyclerView.visibility = View.GONE
+        val currentBinding = _binding ?: return
+
+        currentBinding.progressTravelPlan.visibility = View.VISIBLE
+        currentBinding.planEmptyBox.visibility = View.GONE
+        currentBinding.recyclerTravelPlans.visibility = View.GONE
+        currentBinding.buttonAddPlanBottom.visibility = View.GONE
 
         viewLifecycleOwner.lifecycleScope.launch {
             val result = withContext(Dispatchers.IO) {
                 try {
-                    Pair(dbHelper.getAllPlans(), false)
+                    val plans = dbHelper.getAllPlans()
+
+                    val sortedPlans = when (sortMode) {
+                        SortMode.DEFAULT -> plans
+                        SortMode.DATE -> plans.sortedBy { it.planDate }
+                        SortMode.PLACE -> plans.sortedBy { it.place }
+                    }
+
+                    Pair(sortedPlans, false)
                 } catch (_: Exception) {
                     Pair(emptyList<TravelPlan>(), true)
                 }
             }
 
+            val latestBinding = _binding ?: return@launch
+
             if (!isAdded) {
                 return@launch
             }
-            progressBar.visibility = View.GONE
+
+            latestBinding.progressTravelPlan.visibility = View.GONE
+
             if (result.second) {
                 Toast.makeText(requireContext(), R.string.toast_load_failed, Toast.LENGTH_SHORT).show()
             }
+
             adapter.submitList(result.first)
-            emptyBox.visibility = if (result.first.isEmpty()) View.VISIBLE else View.GONE
-            recyclerView.visibility = if (result.first.isEmpty()) View.GONE else View.VISIBLE
+
+            val isEmpty = result.first.isEmpty()
+            latestBinding.planEmptyBox.visibility = if (isEmpty) View.VISIBLE else View.GONE
+            latestBinding.recyclerTravelPlans.visibility = if (isEmpty) View.GONE else View.VISIBLE
+            latestBinding.buttonAddPlanBottom.visibility = if (isEmpty) View.GONE else View.VISIBLE
         }
     }
 
-    private fun confirmDelete(plan: TravelPlan) {
+    private fun openNewPlan() {
+        try {
+            AddEditPlanActivity.start(requireContext())
+        } catch (_: Exception) {
+            context?.let {
+                Toast.makeText(it, R.string.error_screen_change, Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun showPlanMenu(plan: TravelPlan) {
+        try {
+            AlertDialog.Builder(requireContext())
+                .setTitle(plan.place)
+                .setItems(arrayOf("수정", "삭제")) { _, which ->
+                    when (which) {
+                        0 -> {
+                            try {
+                                AddEditPlanActivity.start(requireContext(), plan.no)
+                            } catch (_: Exception) {
+                                context?.let {
+                                    Toast.makeText(it, R.string.error_screen_change, Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        }
+
+                        1 -> confirmDeletePlan(plan)
+                    }
+                }
+                .setNegativeButton(R.string.action_cancel, null)
+                .show()
+        } catch (_: Exception) {
+            context?.let {
+                Toast.makeText(it, R.string.error_dialog_failed, Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun confirmDeletePlan(plan: TravelPlan) {
         try {
             AlertDialog.Builder(requireContext())
                 .setTitle(R.string.dialog_delete_title)
@@ -96,7 +167,9 @@ class TravelPlanFragment : Fragment(), PlanAdapter.Listener {
                 }
                 .show()
         } catch (_: Exception) {
-            context?.let { Toast.makeText(it, R.string.error_dialog_failed, Toast.LENGTH_SHORT).show() }
+            context?.let {
+                Toast.makeText(it, R.string.error_dialog_failed, Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -113,12 +186,23 @@ class TravelPlanFragment : Fragment(), PlanAdapter.Listener {
             if (!isAdded) {
                 return@launch
             }
+
             if (deleted) {
-                Toast.makeText(requireContext(), R.string.toast_plan_deleted, Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), R.string.toast_deleted, Toast.LENGTH_SHORT).show()
                 loadPlans()
             } else {
-                Toast.makeText(requireContext(), R.string.toast_plan_delete_failed, Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), R.string.toast_delete_failed, Toast.LENGTH_SHORT).show()
             }
         }
+    }
+
+    enum class SortMode {
+        DEFAULT,
+        DATE,
+        PLACE
+    }
+
+    companion object {
+        var sortMode = SortMode.DEFAULT
     }
 }

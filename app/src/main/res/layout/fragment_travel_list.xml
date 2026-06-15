@@ -1,144 +1,203 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/transparent"
-    android:padding="18dp">
+    android:background="@drawable/bg_momentrip_main"
+    android:clipToPadding="false"
+    android:fillViewport="true"
+    android:paddingTop="0dp"
+    android:paddingBottom="22dp">
 
     <LinearLayout
-        android:id="@+id/listTopCard"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/bg_fragment_card"
-        android:elevation="3dp"
-        android:orientation="vertical"
-        android:padding="20dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/textTravelListBadge"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@drawable/bg_list_badge"
-            android:paddingStart="12dp"
-            android:paddingTop="6dp"
-            android:paddingEnd="12dp"
-            android:paddingBottom="6dp"
-            android:text="@string/badge_travel_log"
-            android:textColor="@color/momentrip_teal_dark"
-            android:textSize="11sp"
-            android:textStyle="bold" />
+        <LinearLayout
+            android:id="@+id/listTopCard"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/section_card_height"
+            android:background="@drawable/bg_fragment_card"
+            android:elevation="1dp"
+            android:orientation="vertical"
+            android:padding="@dimen/section_card_padding">
 
-        <TextView
-            android:id="@+id/textTravelListTitle"
+            <TextView
+                android:id="@+id/textTravelListBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_list_badge"
+                android:paddingStart="12dp"
+                android:paddingTop="6dp"
+                android:paddingEnd="12dp"
+                android:paddingBottom="6dp"
+                android:text="@string/badge_travel_log"
+                android:textColor="@color/momentrip_teal_dark"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/textTravelListTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:text="@string/list_title"
+                android:textColor="@color/momentrip_ink"
+                android:textSize="25sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/textTravelListDescription"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:lineSpacingExtra="3dp"
+                android:text="@string/list_description"
+                android:textColor="@color/momentrip_muted"
+                android:textSize="14sp" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/selectionBar"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginTop="12dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/textSelectionCount"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/bg_empty_box"
+                android:gravity="center_vertical"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:textColor="@color/momentrip_ink"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/buttonClearSelection"
+                android:layout_width="86dp"
+                android:layout_height="match_parent"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/bg_tab_button_secondary"
+                android:stateListAnimator="@animator/button_press"
+                android:text="@string/action_clear_selection"
+                android:textAllCaps="false"
+                android:textColor="@color/momentrip_ink"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/buttonDeleteSelected"
+                android:layout_width="86dp"
+                android:layout_height="match_parent"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/bg_save_button"
+                android:stateListAnimator="@animator/button_press"
+                android:text="@string/action_delete_selected"
+                android:textAllCaps="false"
+                android:textColor="@color/white"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
+        <ProgressBar
+            android:id="@+id/progressTravelList"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="22dp"
+            android:indeterminate="true"
+            android:visibility="gone" />
+
+        <LinearLayout
+            android:id="@+id/listEmptyBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="14dp"
-            android:text="@string/list_title"
-            android:textColor="@color/momentrip_ink"
-            android:textSize="26sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/textTravelListDescription"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:lineSpacingExtra="3dp"
-            android:text="@string/list_description"
-            android:textColor="@color/momentrip_muted"
-            android:textSize="14sp" />
-
-    </LinearLayout>
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerTravelRecords"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginTop="18dp"
-        android:clipToPadding="false"
-        android:paddingBottom="10dp"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/listTopCard" />
-
-    <ProgressBar
-        android:id="@+id/progressTravelList"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:indeterminate="true"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="@id/recyclerTravelRecords"
-        app:layout_constraintEnd_toEndOf="@id/recyclerTravelRecords"
-        app:layout_constraintStart_toStartOf="@id/recyclerTravelRecords"
-        app:layout_constraintTop_toTopOf="@id/recyclerTravelRecords" />
-
-    <LinearLayout
-        android:id="@+id/listEmptyBox"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="18dp"
-        android:background="@drawable/bg_empty_box"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:padding="24dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/listTopCard"
-        app:layout_constraintVertical_bias="0.08">
-
-        <TextView
-            android:id="@+id/textTravelListIcon"
-            android:layout_width="58dp"
-            android:layout_height="58dp"
-            android:background="@drawable/bg_icon_circle_list"
+            android:layout_marginTop="16dp"
+            android:background="@drawable/bg_empty_box"
+            android:elevation="0dp"
             android:gravity="center"
+            android:orientation="vertical"
+            android:paddingStart="@dimen/empty_box_padding_horizontal"
+            android:paddingTop="@dimen/empty_box_padding_vertical"
+            android:paddingEnd="@dimen/empty_box_padding_horizontal"
+            android:paddingBottom="@dimen/empty_box_padding_vertical">
+
+            <TextView
+                android:id="@+id/textTravelListIcon"
+                android:layout_width="@dimen/action_plus_size"
+                android:layout_height="@dimen/action_plus_size"
+                android:background="@drawable/bg_home_button"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center"
+                android:stateListAnimator="@animator/button_press"
+                android:text="@string/action_plus"
+                android:textColor="@color/white"
+                android:textSize="28sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/textTravelListMessage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:gravity="center"
+                android:text="@string/list_empty_title"
+                android:textColor="@color/momentrip_ink"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/textTravelListGuide"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="center"
+                android:lineSpacingExtra="3dp"
+                android:text="@string/list_empty_message"
+                android:textColor="@color/momentrip_muted"
+                android:textSize="13sp" />
+
+        </LinearLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerTravelRecords"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:clipToPadding="false"
+            android:nestedScrollingEnabled="false"
+            android:overScrollMode="never"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/buttonAddRecordBottom"
+            android:layout_width="@dimen/action_plus_size"
+            android:layout_height="@dimen/action_plus_size"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="18dp"
+            android:layout_marginBottom="16dp"
+            android:background="@drawable/bg_home_button"
+            android:clickable="true"
+            android:elevation="6dp"
+            android:focusable="true"
+            android:gravity="center"
+            android:stateListAnimator="@animator/button_press"
             android:text="@string/action_plus"
-            android:textColor="@color/momentrip_ink"
-            android:textSize="28sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/textTravelListMessage"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="18dp"
-            android:gravity="center"
-            android:text="@string/list_empty_title"
-            android:textColor="@color/momentrip_ink"
-            android:textSize="18sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/textTravelListGuide"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:gravity="center"
-            android:lineSpacingExtra="3dp"
-            android:text="@string/list_empty_message"
-            android:textColor="@color/momentrip_muted"
-            android:textSize="13sp" />
-
-        <Button
-            android:id="@+id/buttonAddFirst"
-            android:layout_width="wrap_content"
-            android:layout_height="46dp"
-            android:layout_marginTop="18dp"
-            android:background="@drawable/bg_tab_button"
-            android:minWidth="128dp"
-            android:stateListAnimator="@null"
-            android:text="@string/menu_add"
-            android:textAllCaps="false"
             android:textColor="@color/white"
-            android:textStyle="bold" />
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
 
     </LinearLayout>
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.core.widget.NestedScrollView>

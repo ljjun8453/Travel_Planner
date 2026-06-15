@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_momentrip_main"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:id="@+id/locationSearchCard"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_content_panel"
+        android:elevation="2dp"
+        android:orientation="vertical"
+        android:padding="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:orientation="horizontal">
+
+            <EditText
+                android:id="@+id/editLocationSearch"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@drawable/bg_input_field"
+                android:hint="@string/hint_location_search"
+                android:inputType="text"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
+                android:singleLine="true" />
+
+            <Button
+                android:id="@+id/buttonSearchLocation"
+                android:layout_width="88dp"
+                android:layout_height="match_parent"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/bg_save_button"
+                android:stateListAnimator="@animator/button_press"
+                android:text="@string/action_search"
+                android:textAllCaps="false"
+                android:textColor="@color/white"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/textPickerSelectedLocation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/bg_map_info"
+            android:padding="12dp"
+            android:text="@string/selected_location_empty"
+            android:textColor="@color/momentrip_muted"
+            android:textSize="13sp" />
+
+    </LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/locationMapContainer"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="12dp"
+        android:background="@drawable/bg_map_preview"
+        app:layout_constraintBottom_toTopOf="@id/locationButtonLayout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/locationSearchCard" />
+
+    <ProgressBar
+        android:id="@+id/progressLocationPicker"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:elevation="12dp"
+        android:indeterminate="true"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@id/locationMapContainer"
+        app:layout_constraintEnd_toEndOf="@id/locationMapContainer"
+        app:layout_constraintStart_toStartOf="@id/locationMapContainer"
+        app:layout_constraintTop_toTopOf="@id/locationMapContainer" />
+
+    <LinearLayout
+        android:id="@+id/locationButtonLayout"
+        android:layout_width="0dp"
+        android:layout_height="54dp"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <Button
+            android:id="@+id/buttonCancelLocation"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@drawable/bg_tab_button_secondary"
+            android:stateListAnimator="@animator/button_press"
+            android:text="@string/action_cancel"
+            android:textAllCaps="false"
+            android:textColor="@color/momentrip_ink"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/buttonConfirmLocation"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:background="@drawable/bg_save_button"
+            android:stateListAnimator="@animator/button_press"
+            android:text="@string/action_select"
+            android:textAllCaps="false"
+            android:textColor="@color/white"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

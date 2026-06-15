@@ -1,17 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="@dimen/list_item_card_height"
     android:layout_marginBottom="12dp"
     android:background="@drawable/bg_fragment_card"
-    android:elevation="2dp"
+    android:clickable="true"
+    android:elevation="1dp"
+    android:focusable="true"
     android:orientation="vertical"
+    android:stateListAnimator="@animator/button_press"
     android:padding="18dp">
 
     <TextView
         android:id="@+id/itemPlanPlace"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:maxLines="1"
         android:textColor="@color/momentrip_ink"
         android:textSize="20sp"
         android:textStyle="bold" />
@@ -30,7 +35,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
+        android:ellipsize="end"
+        android:maxLines="2"
         android:textColor="@color/momentrip_muted"
         android:textSize="14sp" />
 
 </LinearLayout>
+

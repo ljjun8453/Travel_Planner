@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="screen_side_margin">44dp</dimen>
+    <dimen name="screen_top_margin">28dp</dimen>
+    <dimen name="screen_inner_padding">20dp</dimen>
+    <dimen name="header_horizontal_padding">30dp</dimen>
+    <dimen name="header_top_padding">24dp</dimen>
+    <dimen name="header_bottom_padding">28dp</dimen>
+    <dimen name="section_card_padding">24dp</dimen>
+    <dimen name="section_card_min_height">140dp</dimen>
+    <dimen name="section_card_height">156dp</dimen>
+    <dimen name="list_item_card_height">118dp</dimen>
+    <dimen name="empty_box_padding_horizontal">32dp</dimen>
+    <dimen name="empty_box_padding_vertical">30dp</dimen>
+    <dimen name="action_plus_size">64dp</dimen>
+    <dimen name="bottom_nav_height">86dp</dimen>
+    <dimen name="bottom_nav_padding_horizontal">44dp</dimen>
+    <dimen name="bottom_home_size">72dp</dimen>
+</resources>
